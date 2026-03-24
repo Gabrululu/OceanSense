@@ -1,0 +1,20 @@
+[package]
+name    = "ocean-sense-pay"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name       = "ocean_sense_pay"
+
+[features]
+no-entrypoint  = []
+no-idl         = []
+no-log-ix-name = []
+cpi            = ["no-entrypoint"]
+default        = []
+
+[dependencies]
+anchor-lang    = "0.29.0"
+anchor-spl     = { version = "0.29.0", features = ["token", "token-2022", "associated-token"] }
+spl-token-2022 = { version = "0.9", features = ["no-entrypoint"] }

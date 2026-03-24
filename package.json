@@ -1,0 +1,36 @@
+{
+  "name": "ocean-sense-pay",
+  "version": "0.1.0",
+  "description": "DePIN para monitoreo oceánico del litoral peruano + stablecoin cPEN",
+  "scripts": {
+    "build": "anchor build && yarn copy-idl",
+    "copy-idl": "mkdir -p app/public/idl && cp target/idl/ocean_sense_pay.json app/public/idl/",
+    "test": "anchor test",
+    "test:ts": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts",
+    "deploy": "anchor deploy",
+    "localnet": "anchor localnet",
+    "setup-mint": "bash scripts/setup-cpen-mint.sh"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/wallet-adapter-backpack": "^0.1.22",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-coinbase": "^0.1.21",
+    "@solana/wallet-adapter-phantom": "^0.9.28",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-solflare": "^0.6.32",
+    "@solana/web3.js": "^1.98.4",
+    "bn.js": "^5.2.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^20.0.0",
+    "chai": "^4.3.0",
+    "mocha": "^10.0.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Crypto PEN",
+  "symbol": "cPEN",
+  "description": "Stablecoin pegged 1:1 al Sol Peruano (PEN). Emitida por Ocean-Sense Network como recompensa a pescadores artesanales que operan boyas de monitoreo oceánico en el litoral peruano. 1 cPEN = 1 PEN. Colateralizada con USDC.",
+  "image": "https://raw.githubusercontent.com/tu-usuario/ocean-sense/main/metadata/cpen-logo.png",
+  "external_url": "https://ocean-sense.pe",
+  "attributes": [
+    { "trait_type": "Type",       "value": "Stablecoin" },
+    { "trait_type": "Peg",        "value": "PEN (Sol Peruano)" },
+    { "trait_type": "Collateral", "value": "USDC" },
+    { "trait_type": "Network",    "value": "Solana Devnet" },
+    { "trait_type": "Standard",   "value": "Token-2022" },
+    { "trait_type": "Transfer Fee", "value": "0.5%" }
+  ],
+  "properties": {
+    "category": "currency",
+    "decimals": 2,
+    "token_standard": "Token-2022",
+    "extensions": [
+      "TransferFee",
+      "MetadataPointer",
+      "TokenMetadata",
+      "FreezeAuthority"
+    ]
+  }
+}

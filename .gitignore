@@ -1,0 +1,49 @@
+# Dependencias
+node_modules/
+.yarn/
+
+# Artefactos de compilación Rust/Anchor
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Archivos generados por Anchor
+.anchor/
+app/.anchor/
+
+# IDL generados (se regeneran con anchor build)
+# Descomenta si quieres commitearlos:
+# target/idl/
+# target/types/
+
+# Claves privadas — NUNCA commitear
+*.json
+!package.json
+!tsconfig.json
+!metadata/*.json
+!Anchor.toml
+
+# Wallet local de desarrollo
+test-ledger/
+.wallet/
+
+# Variables de entorno
+.env
+.env.local
+.env.devnet
+.env.mainnet
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js (Día 3)
+app/.next/
+app/out/
+app/.env.local
