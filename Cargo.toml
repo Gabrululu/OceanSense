@@ -1,20 +1,15 @@
-[package]
-name    = "ocean-sense-pay"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+    "programs/ocean-sense-pay"
+]
+resolver = "2"
 
-[lib]
-crate-type = ["cdylib", "lib"]
-name       = "ocean_sense_pay"
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
 
-[features]
-no-entrypoint  = []
-no-idl         = []
-no-log-ix-name = []
-cpi            = ["no-entrypoint"]
-default        = []
-
-[dependencies]
-anchor-lang    = "0.29.0"
-anchor-spl     = { version = "0.29.0", features = ["token", "token-2022", "associated-token"] }
-spl-token-2022 = { version = "0.9", features = ["no-entrypoint"] }
+[profile.release.build-override]
+opt-level = 3
+incremental = false
+codegen-units = 1

@@ -23,7 +23,7 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-semibold text-cyan-400" suppressHydrationWarning>
           <Waves size={20} />
-          <span>Ocean-Sense Pay</span>
+          <span>Ocean-Sense</span>
           <span className="text-xs text-slate-500 font-normal hidden sm:inline">
             Devnet
           </span>

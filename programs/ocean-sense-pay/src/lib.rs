@@ -1,13 +1,14 @@
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
+use anchor_spl::token_2022::Token2022;
+use anchor_spl::token_interface::{Mint as InterfaceMint, TokenAccount as InterfaceTokenAccount};
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+pub mod cpen;
 
-// ─── Tasa de conversión: 1 USDC (6 decimales) por cada 1_000_000 lamports ───
-// En Devnet usamos USDC mock con 6 decimales, igual que mainnet
-// 1 lectura normal   = 1_000_000 lamports → 1 USDC (6 decimales) = 1_000_000 unidades
-// 1 lectura crítica  = 5_000_000 lamports → 5 USDC
-const LAMPORTS_TO_USDC: u64 = 1; // ratio 1:1 para simplificar en Devnet
+declare_id!("EawytSiCAZ6tKx6t1bVFmSb8Y7uTUbxMdydrokCiR71N");
+
+const LAMPORTS_TO_USDC: u64 = 1;
 
 #[program]
 pub mod ocean_sense {
@@ -80,35 +81,41 @@ pub mod ocean_sense {
         };
 
         // Extraer valores antes de borrows mutables
-        let buoy_key     = ctx.accounts.buoy.key();
+        let buoy_key = ctx.accounts.buoy.key();
         let operator_key = ctx.accounts.operator.key();
-        let reading_index      = ctx.accounts.buoy.total_readings;
-        let buoy_latitude      = ctx.accounts.buoy.latitude;
-        let buoy_longitude     = ctx.accounts.buoy.longitude;
-        let buoy_id_str        = ctx.accounts.buoy.buoy_id.clone();
-        let location_name_str  = ctx.accounts.buoy.location_name.clone();
+        let reading_index = ctx.accounts.buoy.total_readings;
+        let buoy_latitude = ctx.accounts.buoy.latitude;
+        let buoy_longitude = ctx.accounts.buoy.longitude;
+        let buoy_id_str = ctx.accounts.buoy.buoy_id.clone();
+        let location_name_str = ctx.accounts.buoy.location_name.clone();
 
         // Guardar la lectura en su PDA
         let reading = &mut ctx.accounts.reading;
-        reading.buoy           = buoy_key;
-        reading.operator       = operator_key;
-        reading.temperature    = temperature;
-        reading.salinity       = salinity;
-        reading.wave_height    = wave_height;
+        reading.buoy = buoy_key;
+        reading.operator = operator_key;
+        reading.temperature = temperature;
+        reading.salinity = salinity;
+        reading.wave_height = wave_height;
         reading.pollution_level = pollution_level;
-        reading.timestamp      = timestamp;
-        reading.usdc_reward    = usdc_reward;
-        reading.reading_index  = reading_index;
-        reading.claimed        = false;
+        reading.timestamp = timestamp;
+        reading.usdc_reward = usdc_reward;
+        reading.reading_index = reading_index;
+        reading.claimed = false;
 
         // Actualizar estadísticas de la boya
         let buoy = &mut ctx.accounts.buoy;
-        buoy.total_readings = buoy.total_readings
-            .checked_add(1).ok_or(OceanSenseError::Overflow)?;
-        buoy.total_rewards = buoy.total_rewards
-            .checked_add(usdc_reward).ok_or(OceanSenseError::Overflow)?;
-        buoy.unclaimed_usdc = buoy.unclaimed_usdc
-            .checked_add(usdc_reward).ok_or(OceanSenseError::Overflow)?;
+        buoy.total_readings = buoy
+            .total_readings
+            .checked_add(1)
+            .ok_or(OceanSenseError::Overflow)?;
+        buoy.total_rewards = buoy
+            .total_rewards
+            .checked_add(usdc_reward)
+            .ok_or(OceanSenseError::Overflow)?;
+        buoy.unclaimed_usdc = buoy
+            .unclaimed_usdc
+            .checked_add(usdc_reward)
+            .ok_or(OceanSenseError::Overflow)?;
         buoy.last_reading_timestamp = timestamp;
 
         emit!(ReadingSubmitted {
@@ -129,7 +136,10 @@ pub mod ocean_sense {
                 pollution_level,
                 timestamp,
             });
-            msg!("ALERTA: Contaminacion critica detectada en {}", location_name_str);
+            msg!(
+                "ALERTA: Contaminacion critica detectada en {}",
+                location_name_str
+            );
         }
 
         msg!(
@@ -166,10 +176,10 @@ pub mod ocean_sense {
     // ─────────────────────────────────────────────────────────
     pub fn initialize_vault(ctx: Context<InitializeVault>) -> Result<()> {
         let vault_state = &mut ctx.accounts.vault_state;
-        vault_state.authority    = ctx.accounts.authority.key();
-        vault_state.usdc_mint    = ctx.accounts.usdc_mint.key();
-        vault_state.vault_bump   = ctx.bumps.vault_state;
-        vault_state.total_paid   = 0;
+        vault_state.authority = ctx.accounts.authority.key();
+        vault_state.usdc_mint = ctx.accounts.usdc_mint.key();
+        vault_state.vault_bump = ctx.bumps.vault_state;
+        vault_state.total_paid = 0;
         vault_state.total_funded = 0;
 
         msg!(
@@ -189,18 +199,19 @@ pub mod ocean_sense {
 
         // CPI: transferir USDC de la wallet del funder al vault
         let cpi_accounts = Transfer {
-            from:      ctx.accounts.funder_token_account.to_account_info(),
-            to:        ctx.accounts.vault_token_account.to_account_info(),
+            from: ctx.accounts.funder_token_account.to_account_info(),
+            to: ctx.accounts.vault_token_account.to_account_info(),
             authority: ctx.accounts.funder.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            cpi_accounts,
-        );
+        let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
         token::transfer(cpi_ctx, amount)?;
 
-        ctx.accounts.vault_state.total_funded = ctx.accounts.vault_state.total_funded
-            .checked_add(amount).ok_or(OceanSenseError::Overflow)?;
+        ctx.accounts.vault_state.total_funded = ctx
+            .accounts
+            .vault_state
+            .total_funded
+            .checked_add(amount)
+            .ok_or(OceanSenseError::Overflow)?;
 
         msg!("Vault fondeado con {} USDC", amount / 1_000_000);
         Ok(())
@@ -233,14 +244,15 @@ pub mod ocean_sense {
         );
 
         // ── CPI con firma del vault PDA ──────────────────────
-        // El vault_state PDA firma la transferencia como authority
-        // Seeds del vault_state: ["vault_state"]
-        let vault_seeds: &[&[u8]] = &[b"vault_state", &[ctx.accounts.vault_state.vault_bump]];
+        // Seeds del vault_state: ["vault_state", usdc_mint]
+        let usdc_mint_bytes = ctx.accounts.vault_state.usdc_mint.to_bytes();
+        let vault_bump = ctx.accounts.vault_state.vault_bump;
+        let vault_seeds: &[&[u8]] = &[b"vault_state", &usdc_mint_bytes, &[vault_bump]];
         let signer_seeds = &[vault_seeds];
 
         let cpi_accounts = Transfer {
-            from:      ctx.accounts.vault_token_account.to_account_info(),
-            to:        ctx.accounts.operator_token_account.to_account_info(),
+            from: ctx.accounts.vault_token_account.to_account_info(),
+            to: ctx.accounts.operator_token_account.to_account_info(),
             authority: ctx.accounts.vault_state.to_account_info(),
         };
         let cpi_ctx = CpiContext::new_with_signer(
@@ -254,13 +266,17 @@ pub mod ocean_sense {
         let buoy = &mut ctx.accounts.buoy;
         buoy.unclaimed_usdc = 0;
 
-        ctx.accounts.vault_state.total_paid = ctx.accounts.vault_state.total_paid
-            .checked_add(amount_to_pay).ok_or(OceanSenseError::Overflow)?;
+        ctx.accounts.vault_state.total_paid = ctx
+            .accounts
+            .vault_state
+            .total_paid
+            .checked_add(amount_to_pay)
+            .ok_or(OceanSenseError::Overflow)?;
 
         emit!(RewardClaimed {
-            buoy:            ctx.accounts.buoy.key(),
-            operator:        operator_key,
-            usdc_amount:     amount_to_pay,
+            buoy: ctx.accounts.buoy.key(),
+            operator: operator_key,
+            usdc_amount: amount_to_pay,
         });
 
         msg!(
@@ -269,6 +285,23 @@ pub mod ocean_sense {
             amount_to_pay / 1_000_000,
         );
         Ok(())
+    }
+
+    // ── cPEN Token instructions ───────────────────────────────
+    pub fn initialize_cpen_mint(ctx: Context<InitializeCpenMint>) -> Result<()> {
+        cpen::initialize_cpen_mint(ctx)
+    }
+
+    pub fn mint_cpen(ctx: Context<MintCpen>, usdc_amount: u64) -> Result<()> {
+        cpen::mint_cpen(ctx, usdc_amount)
+    }
+
+    pub fn redeem_cpen(ctx: Context<RedeemCpen>, cpen_amount: u64) -> Result<()> {
+        cpen::redeem_cpen(ctx, cpen_amount)
+    }
+
+    pub fn claim_reward_as_cpen(ctx: Context<ClaimRewardAsCpen>) -> Result<()> {
+        cpen::claim_reward_as_cpen(ctx)
     }
 }
 
@@ -328,12 +361,12 @@ pub struct ToggleBuoy<'info> {
 
 #[derive(Accounts)]
 pub struct InitializeVault<'info> {
-    /// Estado global del vault — PDA seeds: ["vault_state"]
+    /// Estado global del vault — PDA seeds: ["vault_state", usdc_mint]
     #[account(
         init,
         payer = authority,
         space = VaultState::SPACE,
-        seeds = [b"vault_state"],
+        seeds = [b"vault_state", usdc_mint.key().as_ref()],
         bump
     )]
     pub vault_state: Account<'info, VaultState>,
@@ -366,7 +399,7 @@ pub struct InitializeVault<'info> {
 pub struct FundVault<'info> {
     #[account(
         mut,
-        seeds = [b"vault_state"],
+        seeds = [b"vault_state", vault_state.usdc_mint.as_ref()],
         bump = vault_state.vault_bump
     )]
     pub vault_state: Account<'info, VaultState>,
@@ -407,7 +440,7 @@ pub struct ClaimReward<'info> {
 
     #[account(
         mut,
-        seeds = [b"vault_state"],
+        seeds = [b"vault_state", vault_state.usdc_mint.as_ref()],
         bump = vault_state.vault_bump
     )]
     pub vault_state: Account<'info, VaultState>,
@@ -434,6 +467,118 @@ pub struct ClaimReward<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+// ── cPEN Account Contexts ─────────────────────────────────────
+
+#[derive(Accounts)]
+pub struct InitializeCpenMint<'info> {
+    #[account(
+        init,
+        payer = authority,
+        space = cpen::CpenMintConfig::SPACE,
+        seeds = [b"mint_config", usdc_mint.key().as_ref()],
+        bump
+    )]
+    pub mint_config: Account<'info, cpen::CpenMintConfig>,
+    /// CHECK: validamos solo que sea el mint correcto
+    pub cpen_mint: AccountInfo<'info>,
+    /// CHECK: mint del USDC en Devnet
+    pub usdc_mint: AccountInfo<'info>,
+    #[account(
+        init,
+        payer = authority,
+        token::mint = usdc_mint,
+        token::authority = mint_config,
+        token::token_program = token_program_legacy,
+        seeds = [b"usdc_collateral", usdc_mint.key().as_ref()],
+        bump
+    )]
+    pub usdc_collateral_vault: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub token_program_legacy: Program<'info, Token>,
+    pub token_program_2022: Program<'info, Token2022>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct MintCpen<'info> {
+    #[account(mut, seeds = [b"mint_config", mint_config.usdc_mint.as_ref()], bump = mint_config.bump)]
+    pub mint_config: Account<'info, cpen::CpenMintConfig>,
+    #[account(mut, constraint = cpen_mint.key() == mint_config.cpen_mint)]
+    pub cpen_mint: InterfaceAccount<'info, InterfaceMint>,
+    #[account(
+        mut,
+        token::mint = cpen_mint,
+        token::authority = user,
+        token::token_program = token_program_2022,
+    )]
+    pub user_cpen_account: InterfaceAccount<'info, InterfaceTokenAccount>,
+    #[account(mut, token::mint = mint_config.usdc_mint, token::authority = user, token::token_program = token_program_legacy)]
+    pub usdc_source: Account<'info, TokenAccount>,
+    #[account(mut, seeds = [b"usdc_collateral", mint_config.usdc_mint.as_ref()], bump, token::token_program = token_program_legacy)]
+    pub usdc_collateral_vault: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub token_program_legacy: Program<'info, Token>,
+    pub token_program_2022: Program<'info, Token2022>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct RedeemCpen<'info> {
+    #[account(mut, seeds = [b"mint_config", mint_config.usdc_mint.as_ref()], bump = mint_config.bump)]
+    pub mint_config: Account<'info, cpen::CpenMintConfig>,
+    #[account(mut, constraint = cpen_mint.key() == mint_config.cpen_mint)]
+    pub cpen_mint: InterfaceAccount<'info, InterfaceMint>,
+    #[account(
+        mut,
+        associated_token::mint = cpen_mint,
+        associated_token::authority = user,
+        associated_token::token_program = token_program_2022,
+    )]
+    pub user_cpen_account: InterfaceAccount<'info, InterfaceTokenAccount>,
+    #[account(mut, token::mint = mint_config.usdc_mint, token::authority = user, token::token_program = token_program_legacy)]
+    pub usdc_destination: Account<'info, TokenAccount>,
+    #[account(mut, seeds = [b"usdc_collateral", mint_config.usdc_mint.as_ref()], bump, token::token_program = token_program_legacy)]
+    pub usdc_collateral_vault: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub token_program_legacy: Program<'info, Token>,
+    pub token_program_2022: Program<'info, Token2022>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimRewardAsCpen<'info> {
+    #[account(
+        mut,
+        seeds = [b"buoy", buoy.buoy_id.as_bytes(), operator.key().as_ref()],
+        bump = buoy.bump,
+        has_one = owner @ OceanSenseError::Unauthorized,
+    )]
+    pub buoy: Account<'info, BuoyState>,
+    /// CHECK: validado via has_one en buoy
+    pub owner: AccountInfo<'info>,
+    #[account(mut, seeds = [b"mint_config", mint_config.usdc_mint.as_ref()], bump = mint_config.bump)]
+    pub mint_config: Account<'info, cpen::CpenMintConfig>,
+    #[account(mut, constraint = cpen_mint.key() == mint_config.cpen_mint)]
+    pub cpen_mint: InterfaceAccount<'info, InterfaceMint>,
+    #[account(
+        mut,
+        token::mint = cpen_mint,
+        token::authority = operator,
+        token::token_program = token_program_2022,
+    )]
+    pub operator_cpen_account: InterfaceAccount<'info, InterfaceTokenAccount>,
+    #[account(mut)]
+    pub operator: Signer<'info>,
+    pub token_program_2022: Program<'info, Token2022>,
+    pub system_program: Program<'info, System>,
+}
+
 // ─────────────────────────────────────────────────────────────
 // ESTADOS ON-CHAIN
 // ─────────────────────────────────────────────────────────────
@@ -454,21 +599,21 @@ pub struct BuoyState {
 }
 
 impl BuoyState {
-    pub const SPACE: usize = 8 + 32 + (4+32) + 8 + 8 + (4+64) + 1 + 8 + 8 + 8 + 8 + 1;
+    pub const SPACE: usize = 8 + 32 + (4 + 32) + 8 + 8 + (4 + 64) + 1 + 8 + 8 + 8 + 8 + 1;
 }
 
 #[account]
 pub struct OceanReading {
-    pub buoy: Pubkey,            // 32
-    pub operator: Pubkey,        // 32
-    pub temperature: i32,        // 4
-    pub salinity: u32,           // 4
-    pub wave_height: u32,        // 4
-    pub pollution_level: u8,     // 1
-    pub timestamp: i64,          // 8
-    pub usdc_reward: u64,        // 8  (antes: reward_lamports)
-    pub reading_index: u64,      // 8
-    pub claimed: bool,           // 1  ← NUEVO: ¿ya se cobró esta lectura?
+    pub buoy: Pubkey,        // 32
+    pub operator: Pubkey,    // 32
+    pub temperature: i32,    // 4
+    pub salinity: u32,       // 4
+    pub wave_height: u32,    // 4
+    pub pollution_level: u8, // 1
+    pub timestamp: i64,      // 8
+    pub usdc_reward: u64,    // 8  (antes: reward_lamports)
+    pub reading_index: u64,  // 8
+    pub claimed: bool,       // 1  ← NUEVO: ¿ya se cobró esta lectura?
 }
 
 impl OceanReading {
@@ -477,11 +622,11 @@ impl OceanReading {
 
 #[account]
 pub struct VaultState {
-    pub authority: Pubkey,   // 32  — quien puede administrar el vault
-    pub usdc_mint: Pubkey,   // 32  — mint del USDC en Devnet
-    pub total_funded: u64,   // 8   — USDC total depositado
-    pub total_paid: u64,     // 8   — USDC total pagado a operadores
-    pub vault_bump: u8,      // 1
+    pub authority: Pubkey, // 32  — quien puede administrar el vault
+    pub usdc_mint: Pubkey, // 32  — mint del USDC en Devnet
+    pub total_funded: u64, // 8   — USDC total depositado
+    pub total_paid: u64,   // 8   — USDC total pagado a operadores
+    pub vault_bump: u8,    // 1
 }
 
 impl VaultState {

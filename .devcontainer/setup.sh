@@ -1,53 +1,68 @@
 #!/bin/bash
-# .devcontainer/setup.sh
-# Se ejecuta automáticamente al abrir el Codespace
-
 set -e
-echo "🌊 Configurando Ocean-Sense Pay en Codespace..."
 
-# ── Solana CLI ───────────────────────────────────────────
-echo "📦 Instalando Solana CLI..."
-sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
+echo "🌊 Configurando Ocean-Sense Pay en Codespace (Ubuntu 24.04)..."
 
-# Configurar para Devnet
-solana config set --url devnet
+# ── 1. Rutas de persistencia ────────────────────────────
+# Definimos la ruta segura donde guardaste la wallet
+PERSISTENT_WALLET="/workspaces/OceanSense/wallets/dev-wallet.json"
+DEFAULT_WALLET_DIR="$HOME/.config/solana"
+DEFAULT_WALLET_PATH="$DEFAULT_WALLET_DIR/id.json"
 
-# Generar wallet de desarrollo si no existe
-if [ ! -f ~/.config/solana/id.json ]; then
-  solana-keygen new --no-bip39-passphrase --silent
-  echo "🔑 Wallet generada: $(solana address)"
+# ── 2. Solana CLI ───────────────────────────────────────
+if ! command -v solana &> /dev/null; then
+    echo "📦 Instalando Solana CLI..."
+    sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
 fi
 
-# ── Anchor CLI ───────────────────────────────────────────
-echo "⚓ Instalando Anchor..."
-cargo install --git https://github.com/coral-xyz/anchor avm --locked --force 2>/dev/null || true
+# Asegurar que los binarios estén en el PATH de la sesión actual
+export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+# ── 3. Gestión de la Wallet (Lógica de Persistencia) ────
+mkdir -p "$DEFAULT_WALLET_DIR"
+
+if [ -f "$PERSISTENT_WALLET" ]; then
+    echo "🔑 Recuperando wallet persistente desde /workspaces/..."
+    cp "$PERSISTENT_WALLET" "$DEFAULT_WALLET_PATH"
+elif [ ! -f "$DEFAULT_WALLET_PATH" ]; then
+    echo "🆕 No se encontró wallet, generando una nueva..."
+    solana-keygen new --no-bip39-passphrase --silent
+    # Opcional: Respaldar la nueva wallet automáticamente en la zona persistente
+    mkdir -p "/workspaces/OceanSense/wallets"
+    cp "$DEFAULT_WALLET_PATH" "$PERSISTENT_WALLET"
+fi
+
+# Configurar Solana para usar la red y la wallet correctas
+solana config set --url devnet --keypair "$DEFAULT_WALLET_PATH"
+
+# ── 4. Anchor CLI (Versión 0.32.1 compatible con Ubuntu 24.04) ──
+echo "⚓ Configurando Anchor..."
+if ! command -v avm &> /dev/null; then
+    cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+fi
+
 export PATH="$HOME/.cargo/bin:$PATH"
-echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
 
-avm install 0.29.0
-avm use 0.29.0
+# Instalamos la última versión (ya que ahora tenemos GLIBC 2.39)
+avm install 0.32.1
+avm use 0.32.1
 
-# ── Node dependencies ────────────────────────────────────
-echo "📦 Instalando dependencias Node..."
+# ── 5. Alias para corregir el error build-bpf (Truco final) ──
+# Esto evita que Anchor falle si busca el comando antiguo
+SOLANA_BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
+if [ ! -L "$SOLANA_BIN_DIR/cargo-build-bpf" ]; then
+    ln -s "$SOLANA_BIN_DIR/cargo-build-sbf" "$SOLANA_BIN_DIR/cargo-build-bpf" || true
+fi
+
+# ── 6. Dependencias y Entorno ────────────────────────────
+echo "📦 Instalando dependencias de Node..."
 npm install -g yarn
 yarn install
 
-# ── Copiar .env ──────────────────────────────────────────
 if [ ! -f .env ]; then
-  cp .env.example .env
-  echo "📝 .env creado desde .env.example — actualiza las addresses después del deploy"
+    cp .env.example .env
+    echo "📝 .env creado."
 fi
 
-echo ""
-echo "✅ Setup completo!"
-echo ""
-echo "📋 Próximos pasos:"
-echo "   1. anchor build          → compilar el programa"
-echo "   2. solana airdrop 5      → obtener SOL de prueba"
-echo "   3. anchor deploy         → desplegar en Devnet"
-echo "   4. bash scripts/setup-cpen-mint.sh  → crear el mint cPEN"
-echo "   5. anchor test           → correr los tests"
-echo ""
-solana address && echo "🔑 Tu wallet Devnet: $(solana address)"
+echo "✅ ¡Setup completo y persistente!"
+solana address && echo "🔑 Wallet activa: $(solana address)"
