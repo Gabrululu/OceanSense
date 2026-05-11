@@ -1,8 +1,8 @@
 # 🌊 Ocean-Sense
 
-**DePIN de Monitoreo Oceánico + Stablecoin cPEN para el Litoral Peruano**
+**DePIN Ocean Monitoring + cPEN Stablecoin for Peru's Coastline**
 
-> Red descentralizada de boyas IoT operadas por pescadores artesanales que registran datos oceánicos en tiempo real en Solana, con recompensas automáticas en **cPEN** — una stablecoin pegged al Sol Peruano (PEN).
+> A decentralized network of IoT buoys operated by artisanal fishers that records real-time ocean data on Solana, with automatic rewards in **cPEN** — a stablecoin pegged to the Peruvian Sol (PEN).
 
 [![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana)](https://explorer.solana.com/?cluster=devnet)
 [![Anchor](https://img.shields.io/badge/Anchor-0.30.1-512DA8)](https://anchor-lang.com)
@@ -12,29 +12,29 @@
 
 ---
 
-## El Problema
+## The Problem
 
-Perú tiene **3,080 km de costa** sin datos oceánicos en tiempo real. La ausencia de información confiable sobre temperatura, corrientes y contaminación impacta directamente a **40,000 pescadores artesanales**.
+Peru has **3,080 km of coastline** with no real-time ocean data. The lack of reliable information on temperature, currents, and pollution directly affects **40,000 artisanal fishers**.
 
-El Niño 2023–2024 causó **$3B en pérdidas económicas** porque no existía infraestructura de monitoreo descentralizada que permitiera alertas tempranas.
+The 2023–2024 El Niño event caused **$3B in economic losses** because no decentralized monitoring infrastructure existed to enable early warnings.
 
-Los sistemas actuales son centralizados (IMARPE, SENAHMI), con cobertura insuficiente y sin incentivos para la participación comunitaria.
-
----
-
-## La Solución
-
-Ocean-Sense combina **DePIN + stablecoin local** en un solo protocolo:
-
-1. Pescadores operan boyas IoT en sus zonas de pesca
-2. Las boyas envían lecturas oceánicas a Solana vía transacciones
-3. El programa on-chain valida y registra cada lectura de forma inmutable
-4. Los operadores reciben **cPEN** (crypto PEN, pegged al Sol Peruano) por cada dato válido
-5. Las alertas de contaminación crítica se emiten en tiempo real on-chain
+Current systems (IMARPE, SENAHMI) are centralized, have insufficient coverage, and offer no incentives for community participation.
 
 ---
 
-## Arquitectura del Protocolo
+## The Solution
+
+Ocean-Sense combines **DePIN + a local stablecoin** in a single protocol:
+
+1. Fishers operate IoT buoys in their fishing zones
+2. Buoys submit ocean readings to Solana via transactions
+3. The on-chain program validates and immutably records each reading
+4. Operators receive **cPEN** (Crypto PEN, pegged to the Peruvian Sol) for every valid data point
+5. Critical pollution alerts are emitted in real time on-chain
+
+---
+
+## Protocol Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -53,13 +53,13 @@ Ocean-Sense combina **DePIN + stablecoin local** en un solo protocolo:
 │  └──────────────┘   └───────────────┘     └────────────┬─────────────┘   │
 │                                                        │ CPI             │
 │  ┌──────────────────────────────────┐     ┌────────────▼─────────────┐   │
-│  │           Token cPEN             │     │    CpenMintConfig        │   │
+│  │           cPEN Token             │     │    CpenMintConfig        │   │
 │  │           Token-2022             │     │          PDA             │   │
 │  │                                  │     │                          │   │
 │  │  Transfer Fee : 0.5% (50 bps)    │     │ cpen_mint                │   │
-│  │  Metadata    : on-chain nativa   │     │ usdc_mint                │   │
-│  │  Freeze Auth : compliance SBS    │     │ total_minted             │   │
-│  │  MintClose   : cierre controlado │     │ total_redeemed           │   │
+│  │  Metadata    : native on-chain   │     │ usdc_mint                │   │
+│  │  Freeze Auth : SBS compliance    │     │ total_minted             │   │
+│  │  MintClose   : controlled close  │     │ total_redeemed           │   │
 │  └──────────────────────────────────┘     └──────────────────────────┘   │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -67,89 +67,89 @@ Ocean-Sense combina **DePIN + stablecoin local** en un solo protocolo:
 
 ---
 
-## Instrucciones On-Chain
+## On-Chain Instructions
 
-### Módulo principal (`lib.rs`)
+### Main module (`lib.rs`)
 
-| Instrucción        | Descripción                                       | Accounts clave                   |
-| ------------------ | ------------------------------------------------- | -------------------------------- |
-| `register_buoy`    | Registra boya con coordenadas GPS                 | BuoyState PDA, Operator          |
-| `submit_reading`   | Envía lectura oceánica y acumula USDC             | BuoyState, OceanReading PDA      |
-| `toggle_buoy`      | Activa / desactiva boya                           | BuoyState, Operator              |
-| `initialize_vault` | Crea vault global de USDC                         | VaultState PDA, TokenAccount PDA |
-| `fund_vault`       | Deposita USDC al vault (CPI)                      | VaultState, Funder ATA           |
-| `claim_reward`     | Transfiere USDC al operador (CPI firmado por PDA) | VaultState, Operator ATA         |
+| Instruction        | Description                                        | Key Accounts                     |
+| ------------------ | -------------------------------------------------- | -------------------------------- |
+| `register_buoy`    | Registers a buoy with GPS coordinates              | BuoyState PDA, Operator          |
+| `submit_reading`   | Submits an ocean reading and accrues USDC          | BuoyState, OceanReading PDA      |
+| `toggle_buoy`      | Activates / deactivates a buoy                     | BuoyState, Operator              |
+| `initialize_vault` | Creates the global USDC vault                      | VaultState PDA, TokenAccount PDA |
+| `fund_vault`       | Deposits USDC into the vault (CPI)                 | VaultState, Funder ATA           |
+| `claim_reward`     | Transfers USDC to the operator (PDA-signed CPI)    | VaultState, Operator ATA         |
 
-### Módulo cPEN (`cpen.rs`)
+### cPEN module (`cpen.rs`)
 
-| Instrucción            | Descripción                             | Conversión          |
-| ---------------------- | --------------------------------------- | ------------------- |
-| `initialize_cpen_mint` | Crea el mint config y vault colateral   | —                   |
-| `mint_cpen`            | USDC → cPEN con colateral               | 1 USDC = 3.80 cPEN  |
-| `redeem_cpen`          | cPEN → USDC liberando colateral         | 1 cPEN = 0.263 USDC |
-| `claim_reward_as_cpen` | Recompensas Ocean-Sense en cPEN directo | CPI con firma PDA   |
+| Instruction            | Description                              | Rate                |
+| ---------------------- | ---------------------------------------- | ------------------- |
+| `initialize_cpen_mint` | Creates the mint config and collateral vault | —               |
+| `mint_cpen`            | USDC → cPEN with collateral              | 1 USDC = 3.80 cPEN  |
+| `redeem_cpen`          | cPEN → USDC releasing collateral         | 1 cPEN = 0.263 USDC |
+| `claim_reward_as_cpen` | Ocean-Sense rewards directly in cPEN     | CPI with PDA signer |
 
 ---
 
-## Token cPEN — Parámetros
+## cPEN Token — Parameters
 
-| Propiedad        | Valor                          |
+| Property         | Value                          |
 | ---------------- | ------------------------------ |
-| Nombre           | Crypto PEN                     |
-| Símbolo          | cPEN                           |
-| Decimales        | 2                              |
-| Peg              | 1 cPEN = 1 Sol Peruano (PEN)   |
-| Colateral        | USDC (1 USDC = 3.80 cPEN)      |
-| Estándar         | Token-2022                     |
+| Name             | Crypto PEN                     |
+| Symbol           | cPEN                           |
+| Decimals         | 2                              |
+| Peg              | 1 cPEN = 1 Peruvian Sol (PEN)  |
+| Collateral       | USDC (1 USDC = 3.80 cPEN)      |
+| Standard         | Token-2022                     |
 | Transfer Fee     | 0.5% (50 basis points)         |
-| Max Fee          | 10,000 cPEN por transacción    |
-| Freeze Authority | Sí (compliance SBS/UIF)        |
-| Metadata         | On-chain nativa (sin Metaplex) |
+| Max Fee          | 10,000 cPEN per transaction    |
+| Freeze Authority | Yes (SBS/UIF compliance)       |
+| Metadata         | Native on-chain (no Metaplex)  |
 
 ---
 
-## Modelo de Recompensas
+## Rewards Model
 
-| Nivel contaminación | Descripción              | USDC      | cPEN equivalente |
-| ------------------- | ------------------------ | --------- | ---------------- |
-| `0`                 | Agua limpia              | 1.00 USDC | 3.80 S/          |
-| `1`                 | Contaminación leve       | 1.00 USDC | 3.80 S/          |
-| `2`                 | Contaminación moderada   | 2.00 USDC | 7.60 S/          |
-| `3`                 | Contaminación crítica 🚨 | 5.00 USDC | 19.00 S/         |
+| Pollution Level | Description          | USDC      | cPEN equivalent |
+| --------------- | -------------------- | --------- | --------------- |
+| `0`             | Clean water          | 1.00 USDC | 3.80 S/         |
+| `1`             | Mild pollution       | 1.00 USDC | 3.80 S/         |
+| `2`             | Moderate pollution   | 2.00 USDC | 7.60 S/         |
+| `3`             | Critical pollution 🚨 | 5.00 USDC | 19.00 S/        |
 
-Las alertas críticas (derrames, anomalías) reciben **5x más recompensa** para incentivar el reporte urgente.
-
----
-
-## Datos Oceánicos Registrados On-Chain
-
-| Parámetro     | Tipo Rust | Unidad on-chain | Ejemplo            |
-| ------------- | --------- | --------------- | ------------------ |
-| Temperatura   | `i32`     | centésimas °C   | `2250` = 22.50°C   |
-| Salinidad     | `u32`     | centésimas PSU  | `3510` = 35.10 PSU |
-| Altura de ola | `u32`     | centímetros     | `85` = 0.85 m      |
-| Contaminación | `u8`      | nivel 0–3       | `3` = crítico      |
-| Timestamp     | `i64`     | Unix timestamp  | sensor IoT         |
-
-> Los enteros escalados evitan problemas de precisión con floats en programas on-chain — práctica estándar en Solana.
+Critical alerts (spills, anomalies) receive **5× more reward** to incentivize urgent reporting.
 
 ---
 
-## Stack Técnico
+## Ocean Data Recorded On-Chain
 
-| Capa            | Tecnología                                                     |
+| Parameter      | Rust Type | On-chain unit   | Example            |
+| -------------- | --------- | --------------- | ------------------ |
+| Temperature    | `i32`     | hundredths °C   | `2250` = 22.50°C   |
+| Salinity       | `u32`     | hundredths PSU  | `3510` = 35.10 PSU |
+| Wave height    | `u32`     | centimeters     | `85` = 0.85 m      |
+| Pollution      | `u8`      | level 0–3       | `3` = critical     |
+| Timestamp      | `i64`     | Unix timestamp  | IoT sensor         |
+
+> Scaled integers avoid float precision issues in on-chain programs — standard practice in Solana.
+
+---
+
+## Tech Stack
+
+| Layer           | Technology                                                     |
 | --------------- | -------------------------------------------------------------- |
 | Blockchain      | Solana Devnet                                                  |
 | Smart contracts | Rust + Anchor 0.30.1                                           |
-| Token estándar  | Token-2022 (SPL)                                               |
+| Token standard  | Token-2022 (SPL)                                               |
 | Frontend        | Next.js 14 + TypeScript + Tailwind CSS                         |
 | Wallet adapter  | @solana/wallet-adapter (Phantom, Solflare, Backpack, Coinbase) |
-| Mapa            | Leaflet + CartoDB Dark Matter (sin API key)                    |
+| Map             | Leaflet + CartoDB Dark Matter (no API key required)            |
 | Dev environment | GitHub Codespaces + devcontainer                               |
 
 ---
 
-## Estructura del Repositorio
+## Repository Structure
 
 ```
 OceanSense/
@@ -158,37 +158,37 @@ OceanSense/
 │   └── ocean-sense-pay/
 │       ├── Cargo.toml
 │       └── src/
-│           ├── lib.rs              ← Programa principal (boyas, lecturas, vault)
-│           └── cpen.rs             ← Token cPEN Token-2022
+│           ├── lib.rs              ← Main program (buoys, readings, vault)
+│           └── cpen.rs             ← cPEN Token-2022
 │
 ├── tests/
-│   ├── anchor.test.ts              ← Tests vault + claim USDC
-│   └── anchor.test.day2.ts         ← Tests mint/redeem/claim cPEN
+│   ├── anchor.test.ts              ← Vault + USDC claim tests
+│   └── anchor.test.day2.ts         ← cPEN mint/redeem/claim tests
 │
-├── app/                            ← Frontend Next.js
+├── app/                            ← Next.js frontend
 │   └── src/
 │       ├── hooks/
-│       │   └── useOceanSense.ts    ← Lógica Anchor completa
+│       │   └── useOceanSense.ts    ← Full Anchor logic
 │       ├── components/
-│       │   ├── Providers.tsx       ← Wallet adapter multi-wallet
-│       │   ├── Navbar.tsx          ← Navegación + WalletMultiButton
-│       │   └── BuoyMap.tsx         ← Mapa Leaflet + CartoDB Dark Matter
+│       │   ├── Providers.tsx       ← Multi-wallet adapter
+│       │   ├── Navbar.tsx          ← Navigation + WalletMultiButton
+│       │   └── BuoyMap.tsx         ← Leaflet map + CartoDB Dark Matter
 │       └── app/
-│           ├── page.tsx            ← Dashboard + stats + mapa del litoral
-│           ├── reading/page.tsx    ← Registrar boya + enviar lectura
-│           ├── claim/page.tsx      ← Cobrar recompensas en cPEN
+│           ├── page.tsx            ← Dashboard + stats + coastline map
+│           ├── reading/page.tsx    ← Register buoy + submit reading
+│           ├── claim/page.tsx      ← Claim rewards in cPEN
 │           └── cpen/page.tsx       ← Mint / Redeem cPEN ↔ USDC
 │
 ├── scripts/
-│   ├── setup-cpen-mint.sh          ← Crear mint Token-2022 con extensiones
-│   └── setup-frontend.sh           ← Instalar Next.js y dependencias
+│   ├── setup-cpen-mint.sh          ← Create Token-2022 mint with extensions
+│   └── setup-frontend.sh           ← Install Next.js and dependencies
 │
 ├── metadata/
-│   └── cpen.json                   ← Metadata on-chain del token
+│   └── cpen.json                   ← On-chain token metadata
 │
 ├── .devcontainer/
 │   ├── devcontainer.json           ← Codespace config
-│   └── setup.sh                    ← Instala Solana + Anchor automáticamente
+│   └── setup.sh                    ← Auto-installs Solana + Anchor
 │
 ├── Anchor.toml
 ├── Cargo.toml
@@ -200,70 +200,70 @@ OceanSense/
 
 ---
 
-## Quickstart en GitHub Codespace
+## Quickstart on GitHub Codespace
 
-### Opción A — Abrir en Codespace (recomendado)
+### Option A — Open in Codespace (recommended)
 
-1. Clic en **Code → Codespaces → Create codespace on main**
-2. Esperar ~3 min mientras `setup.sh` instala todo automáticamente
-3. Verificar instalación:
+1. Click **Code → Codespaces → Create codespace on main**
+2. Wait ~3 min while `setup.sh` installs everything automatically
+3. Verify installation:
 
 ```bash
 solana --version
 anchor --version
 ```
 
-### Opción B — Local
+### Option B — Local
 
 ```bash
-# Instalar Rust
+# Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Instalar Solana CLI
+# Install Solana CLI
 sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
 
-# Instalar Anchor
+# Install Anchor
 cargo install --git https://github.com/coral-xyz/anchor avm --locked
 avm install 0.30.1 && avm use 0.30.1
 
-# Clonar y setup
-git clone https://github.com/TU-USUARIO/OceanSense.git
+# Clone and setup
+git clone https://github.com/YOUR-USERNAME/OceanSense.git
 cd OceanSense
 yarn install
 ```
 
 ---
 
-## Deploy en Devnet
+## Deploy on Devnet
 
 ```bash
-# 1. Configurar red
+# 1. Set network
 solana config set --url devnet
 
-# 2. Generar wallet (si no tienes)
+# 2. Generate wallet (if you don't have one)
 solana-keygen new --no-bip39-passphrase
 
-# 3. Fondear con SOL de prueba
+# 3. Fund with test SOL
 solana airdrop 5
-# O usar: https://faucet.solana.com
+# Or use: https://faucet.solana.com
 
-# 4. Compilar y copiar IDL al frontend
+# 4. Build and copy IDL to frontend
 yarn build
 
 # 5. Deploy
 anchor deploy
 
-# 6. Actualizar .env con las addresses del deploy
+# 6. Update .env with deploy addresses
 cp .env.example .env
-# Editar PROGRAM_ID, CPEN_MINT y sus variantes NEXT_PUBLIC_*
+# Edit PROGRAM_ID, CPEN_MINT and their NEXT_PUBLIC_* variants
 
-# 7. Correr tests
+# 7. Run tests
 anchor test
 ```
 
 ---
 
-## Levantar el Frontend
+## Running the Frontend
 
 ```bash
 cd app
@@ -272,131 +272,133 @@ npm run dev
 # → http://localhost:3000
 ```
 
-### Páginas disponibles
+### Available pages
 
-| Ruta       | Descripción                                             |
-| ---------- | ------------------------------------------------------- |
-| `/`        | Dashboard con mapa del litoral + estadísticas de la red |
-| `/reading` | Registrar nueva boya o enviar lectura oceánica          |
-| `/claim`   | Ver y cobrar recompensas pendientes en cPEN             |
-| `/cpen`    | Convertir USDC ↔ cPEN y ver balances                    |
+| Route      | Description                                              |
+| ---------- | -------------------------------------------------------- |
+| `/`        | Dashboard with coastline map + network statistics        |
+| `/reading` | Register a new buoy or submit an ocean reading           |
+| `/claim`   | View and claim pending rewards in cPEN                   |
+| `/cpen`    | Convert USDC ↔ cPEN and check balances                   |
 
 ---
 
 ## Tests
 
 ```bash
-# Todos los tests
+# All tests
 anchor test
 
-# Solo vault + claim USDC
+# Vault + USDC claim only
 yarn run ts-mocha -p ./tsconfig.json tests/anchor.test.ts
 
-# Solo cPEN mint/redeem
+# cPEN mint/redeem only
 yarn run ts-mocha -p ./tsconfig.json tests/anchor.test.day2.ts
 ```
 
-Resultado esperado:
+Expected output:
 
 ```
 🌊 Ocean-Sense
-  ✔ Crea el USDC mock para Devnet
-  ✔ Inicializa el vault global de USDC
-  ✔ Fondea el vault con 100 USDC
-  ✔ Registra la boya en el litoral peruano
-  ✔ Envía lecturas oceánicas y acumula recompensas
-  ✔ El operador cobra sus 6 USDC acumulados
-  ✔ Rechaza claim cuando no hay USDC pendiente
+  ✔ Creates mock USDC for Devnet
+  ✔ Initializes the global USDC vault
+  ✔ Funds the vault with 100 USDC
+  ✔ Registers the buoy on the Peruvian coastline
+  ✔ Submits ocean readings and accumulates rewards
+  ✔ Operator claims their 6 accumulated USDC
+  ✔ Rejects claim when no USDC is pending
 
 💵 cPEN Token
-  ✔ Prepara mints para Devnet
-  ✔ Inicializa la configuración del cPEN
-  ✔ Deposita 10 USDC y recibe 38 cPEN
-  ✔ Quema 19 cPEN y recupera ~5 USDC
-  ✔ Cobra recompensa de Ocean-Sense directamente en cPEN
-  ✔ Verifica el estado final del protocolo cPEN
+  ✔ Prepares mints for Devnet
+  ✔ Initializes the cPEN configuration
+  ✔ Deposits 10 USDC and receives 38 cPEN
+  ✔ Burns 19 cPEN and recovers ~5 USDC
+  ✔ Claims Ocean-Sense reward directly in cPEN
+  ✔ Verifies final state of the cPEN protocol
 
 13 passing
 ```
 
 ---
 
-## Errores Personalizados
+## Custom Errors
 
-| Código | Nombre                   | Descripción                           |
-| ------ | ------------------------ | ------------------------------------- |
-| `6000` | `StringTooLong`          | String supera tamaño máximo           |
-| `6001` | `InvalidPollutionLevel`  | Nivel contaminación debe ser 0–3      |
-| `6002` | `BuoyNotActive`          | Boya desactivada, no acepta lecturas  |
-| `6003` | `Unauthorized`           | Solo el operador dueño puede ejecutar |
-| `6004` | `Overflow`               | Overflow aritmético en contadores     |
-| `6005` | `NothingToClaim`         | Sin recompensas pendientes            |
-| `6006` | `InsufficientVaultFunds` | Vault sin fondos suficientes          |
-| `6007` | `InvalidAmount`          | Monto inválido o cero                 |
-| `6008` | `AmountTooSmall`         | Monto muy pequeño para convertir      |
-| `6009` | `InsufficientBalance`    | Saldo insuficiente en cuenta          |
+| Code   | Name                     | Description                              |
+| ------ | ------------------------ | ---------------------------------------- |
+| `6000` | `StringTooLong`          | String exceeds maximum size              |
+| `6001` | `InvalidPollutionLevel`  | Pollution level must be 0–3              |
+| `6002` | `BuoyNotActive`          | Buoy is deactivated, readings rejected   |
+| `6003` | `Unauthorized`           | Only the owner operator can execute      |
+| `6004` | `Overflow`               | Arithmetic overflow in counters          |
+| `6005` | `NothingToClaim`         | No pending rewards                       |
+| `6006` | `InsufficientVaultFunds` | Vault has insufficient funds             |
+| `6007` | `InvalidAmount`          | Invalid or zero amount                   |
+| `6008` | `AmountTooSmall`         | Amount too small to convert              |
+| `6009` | `InsufficientBalance`    | Insufficient balance in account          |
 
 ---
 
-## Variables de Entorno
+## Environment Variables
 
 ```bash
 cp .env.example .env
 ```
 
-| Variable                 | Descripción                                           |
-| ------------------------ | ----------------------------------------------------- |
-| `NEXT_PUBLIC_PROGRAM_ID` | Address del programa desplegado en Devnet             |
-| `NEXT_PUBLIC_CPEN_MINT`  | Address del mint cPEN (creado con setup-cpen-mint.sh) |
-| `NEXT_PUBLIC_USDC_MINT`  | Address del USDC en Devnet                            |
-| `NEXT_PUBLIC_SOLANA_RPC_URL` | RPC endpoint (por defecto: https://api.devnet.solana.com) |
+| Variable                     | Description                                              |
+| ---------------------------- | -------------------------------------------------------- |
+| `NEXT_PUBLIC_PROGRAM_ID`     | Address of the program deployed on Devnet                |
+| `NEXT_PUBLIC_CPEN_MINT`      | cPEN mint address (created with setup-cpen-mint.sh)      |
+| `NEXT_PUBLIC_USDC_MINT`      | USDC address on Devnet                                   |
+| `NEXT_PUBLIC_SOLANA_RPC_URL` | RPC endpoint (default: https://api.devnet.solana.com)    |
 
 ---
 
-## ¿Por qué Solana?
+## Why Solana?
 
-| Criterio      | Por qué importa para Ocean-Sense                                                |
-| ------------- | ------------------------------------------------------------------------------- |
-| Fees < $0.001 | Los pescadores envían lecturas cada hora — fees altos harían inviable el modelo |
-| Sub-segundo   | Alertas de contaminación deben llegar en segundos, no minutos                   |
-| Token-2022    | Transfer Fee nativo + Freeze Authority para compliance sin código extra         |
-| DePIN líder   | Solana es el ecosistema líder en DePIN (Helium, Hivemapper, GEODNET)            |
-| Composable    | Otros protocolos pueden leer datos Ocean-Sense sin permisos                     |
+| Criterion     | Why it matters for Ocean-Sense                                                      |
+| ------------- | ----------------------------------------------------------------------------------- |
+| Fees < $0.001 | Fishers submit readings every hour — high fees would make the model unviable        |
+| Sub-second    | Pollution alerts must arrive in seconds, not minutes                                |
+| Token-2022    | Native Transfer Fee + Freeze Authority for compliance without extra code            |
+| DePIN leader  | Solana is the leading DePIN ecosystem (Helium, Hivemapper, GEODNET)                 |
+| Composable    | Other protocols can read Ocean-Sense data permissionlessly                          |
 
 ---
 
 ## Roadmap
 
-### ✅ Hackathon
+### ✅ Frontier Hackathon
 
-- [x] Registro de boyas on-chain con PDAs
-- [x] Lecturas oceánicas inmutables con alertas de contaminación
-- [x] Vault USDC + claim de recompensas via CPI
-- [x] Token cPEN con Token-2022 (Transfer Fee + Metadata + Freeze)
-- [x] Mint / Redeem cPEN ↔ USDC con vault de colateral
-- [x] Frontend Next.js: dashboard, mapa CartoDB, claim, swap
-- [x] Soporte multi-wallet (Phantom, Solflare, Backpack, Coinbase)
-- [x] Tests completos en TypeScript
+- [x] On-chain buoy registration with PDAs
+- [x] Immutable ocean readings with pollution alerts
+- [x] USDC vault + reward claiming via CPI
+- [x] cPEN token with Token-2022 (Transfer Fee + Metadata + Freeze)
+- [x] cPEN ↔ USDC mint/redeem with collateral vault
+- [x] Next.js frontend: dashboard, CartoDB map, claim, swap
+- [x] Multi-wallet support (Phantom, Solflare, Backpack, Coinbase)
+- [x] Full TypeScript test suite
 
 ### 🔜 Post-hackathon
 
-- [ ] Oracle de tipo de cambio PEN/USD on-chain
-- [ ] Validación entre pares de lecturas anómalas
-- [ ] Staking de operadores (skin in the game)
-- [ ] SDK público para integrar datos Ocean-Sense
-- [ ] Integración hardware IoT real (ESP32 + sensores CTD)
+- [ ] On-chain PEN/USD exchange rate oracle
+- [ ] Cross-peer validation of anomalous readings
+- [ ] Operator staking (skin in the game)
+- [ ] Public SDK to integrate Ocean-Sense data
+- [ ] Real IoT hardware integration (ESP32 + CTD sensors)
 
-### 🔮 Visión
+### 🔮 Vision
 
-- [ ] Predicción de zonas de pesca con IA (datos on-chain → modelo off-chain)
-- [ ] Dashboard para PRODUCE, SERNANP, DICAPI, Marina de Guerra
-- [ ] Marketplace de datos oceánicos para investigadores y aseguradoras
-- [ ] Expansión a otros litorales de LATAM
+- [ ] AI-powered fishing zone prediction (on-chain data → off-chain model)
+- [ ] Dashboard for PRODUCE, SERNANP, DICAPI, Peruvian Navy
+- [ ] Ocean data marketplace for researchers and insurers
+- [ ] Expansion to other LATAM coastlines
 
 ---
 
-## Construido en el Solana LATAM Hackathon
+## Built for Solana Frontier Hackathon
 
-> WayLearn × Solana Foundation · Categoría: BlueSky (DeSci + Fidelización)
+> Colosseum × Solana Foundation · 2026
 
-Construido con ❤️ para el litoral peruano y los 40,000 pescadores artesanales que merecen datos oceánicos confiables.
+Ocean-Sense is submitted across the **Public Goods** and **University** tracks — a protocol designed to give 40,000 artisanal fishers along Peru's 3,080 km coastline the real-time ocean intelligence they've never had access to.
+
+Built with ❤️ for the Peruvian coast and the fishers who deserve reliable ocean data.

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanSense — Reporte de Validación</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      border: 1px solid #1e3a5f;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, #0d1f3c 0%, #0a2744 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 80% 20%, rgba(0, 120, 255, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+    .project-name { font-size: 2rem; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px; }
+    .project-tagline { color: #94a3b8; margin-top: 0.25rem; font-size: 0.95rem; }
+    .verdict-badge {
+      padding: 0.5rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .verdict-go { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1.5px solid #10b981; }
+    .verdict-nogo { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1.5px solid #ef4444; }
+    .verdict-pivot { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1.5px solid #f59e0b; }
+    .meta { margin-top: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .meta-item { display: flex; flex-direction: column; gap: 0.25rem; }
+    .meta-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; }
+    .meta-value { font-size: 0.9rem; color: #cbd5e1; font-weight: 500; }
+
+    /* Score Card */
+    .score-card {
+      background: #0d1f3c;
+      border: 1px solid #1e3a5f;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .score-card h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 1rem; }
+    .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+    .score-item { text-align: center; }
+    .score-label { font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.5rem; }
+    .score-bar-wrap { height: 60px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 0.5rem; }
+    .score-bar {
+      width: 28px;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease;
+    }
+    .score-bar.s0 { background: #1e293b; height: 8px; }
+    .score-bar.s1 { background: #ef4444; height: 20px; }
+    .score-bar.s2 { background: #f59e0b; height: 40px; }
+    .score-bar.s3 { background: #10b981; height: 60px; }
+    .score-num { font-size: 1.2rem; font-weight: 700; color: #e2e8f0; }
+    .score-total {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #1e3a5f;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .total-num { font-size: 1.8rem; font-weight: 700; color: #38bdf8; }
+    .total-label { color: #64748b; font-size: 0.85rem; }
+    .threshold-note { font-size: 0.8rem; color: #64748b; }
+    .confidence-wrap { display: flex; align-items: center; gap: 1rem; }
+    .confidence-bar-bg { flex: 1; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+    .confidence-bar { height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); border-radius: 3px; }
+
+    /* Sections */
+    .section {
+      background: #0d1f3c;
+      border: 1px solid #1e3a5f;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .section h2 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+    .signal-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+    .signal-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    .signal-item .icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
+
+    /* Risks */
+    .risk-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+    .risk-item {
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 3px solid;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    .risk-high { background: rgba(239, 68, 68, 0.05); border-color: #ef4444; }
+    .risk-medium { background: rgba(245, 158, 11, 0.05); border-color: #f59e0b; }
+    .risk-low { background: rgba(100, 116, 139, 0.05); border-color: #64748b; }
+    .risk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+    .risk-category { font-weight: 600; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; }
+    .risk-severity {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .sev-high { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .sev-medium { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .sev-low { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+
+    /* Next Steps */
+    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; counter-reset: steps; }
+    .step-item {
+      display: flex;
+      gap: 1rem;
+      padding: 0.75rem;
+      background: rgba(56, 189, 248, 0.04);
+      border: 1px solid rgba(56, 189, 248, 0.1);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Integration box */
+    .integration-box {
+      background: rgba(139, 92, 246, 0.05);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+    .integration-box strong { color: #a78bfa; }
+
+    /* Footer */
+    .footer { text-align: center; margin-top: 2rem; color: #334155; font-size: 0.8rem; }
+    .phase-banner {
+      background: linear-gradient(90deg, rgba(16,185,129,0.1), rgba(56,189,248,0.1));
+      border: 1px solid rgba(16,185,129,0.25);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.88rem;
+      color: #a7f3d0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="project-name">🌊 OceanSense</div>
+        <div class="project-tagline">DePIN de monitoreo oceánico + cPEN para el litoral peruano</div>
+      </div>
+      <div class="verdict-badge verdict-go">GO ✓</div>
+    </div>
+    <div class="meta">
+      <div class="meta-item">
+        <span class="meta-label">Categoría</span>
+        <span class="meta-value">DePIN + DeSci + Stablecoin Regional</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Chain</span>
+        <span class="meta-value">Solana (Devnet)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Hackathon</span>
+        <span class="meta-value">WayLearn × Solana Foundation · BlueSky</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Validado el</span>
+        <span class="meta-value">05 Mayo 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase banner -->
+  <div class="phase-banner">
+    ✅ Fase 1 (Idea) completada — Puedes proceder a <strong>/build-with-claude</strong> para la Fase 2 (Build)
+  </div>
+
+  <!-- Score Card -->
+  <div class="score-card">
+    <h2>Scorecard de Validación</h2>
+    <div class="score-grid">
+      <div class="score-item">
+        <div class="score-label">Founder Fit</div>
+        <div class="score-bar-wrap"><div class="score-bar s2"></div></div>
+        <div class="score-num">2/3</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">MVP Speed</div>
+        <div class="score-bar-wrap"><div class="score-bar s3"></div></div>
+        <div class="score-num">3/3</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Distribution</div>
+        <div class="score-bar-wrap"><div class="score-bar s2"></div></div>
+        <div class="score-num">2/3</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Market Pull</div>
+        <div class="score-bar-wrap"><div class="score-bar s3"></div></div>
+        <div class="score-num">3/3</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Revenue</div>
+        <div class="score-bar-wrap"><div class="score-bar s2"></div></div>
+        <div class="score-num">2/3</div>
+      </div>
+    </div>
+    <div class="score-total">
+      <div>
+        <div class="total-num">12 / 15</div>
+        <div class="total-label">Score total <span class="threshold-note">(umbral GO: ≥ 8)</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="meta-label" style="margin-bottom:0.5rem;">Confianza</div>
+        <div class="confidence-wrap" style="width:200px;">
+          <div class="confidence-bar-bg">
+            <div class="confidence-bar" style="width:72%"></div>
+          </div>
+          <span style="color:#38bdf8; font-weight:700; font-size:0.9rem; white-space:nowrap;">72%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demand Signals -->
+  <div class="section">
+    <h2>Señales de Demanda (5 señales — score: 2/3 Moderado-Fuerte)</h2>
+    <ul class="signal-list">
+      <li class="signal-item">
+        <span class="icon">💥</span>
+        <span><strong>El Niño 2023-2024 causó $3B en pérdidas económicas en Perú</strong> por falta de monitoreo oceánico descentralizado — el problema tiene un costo documentado y reciente.</span>
+      </li>
+      <li class="signal-item">
+        <span class="icon">🎣</span>
+        <span><strong>40,000 pescadores artesanales</strong> afectados por la ausencia de datos de temperatura, corrientes y contaminación en tiempo real a lo largo de 3,080 km de litoral.</span>
+      </li>
+      <li class="signal-item">
+        <span class="icon">🏛️</span>
+        <span><strong>IMARPE y SENAHMI tienen cobertura documentadamente insuficiente</strong> — sistemas centralizados sin incentivos para participación comunitaria. Hay un vacío institucional real.</span>
+      </li>
+      <li class="signal-item">
+        <span class="icon">🌦️</span>
+        <span><strong>WeatherXM prueba el modelo</strong>: comunidad de estaciones meteorológicas descentralizadas recompensadas por datos ambientales tiene tracción en Web3. OceanSense es el análogo para datos oceánicos.</span>
+      </li>
+      <li class="signal-item">
+        <span class="icon">🔗</span>
+        <span><strong>Solana lidera DePIN</strong>: Helium (>500k dispositivos), Hivemapper, GEODNET, Render demuestran que el modelo de incentivos on-chain para hardware funciona a escala.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Necesidad del blockchain -->
+  <div class="section">
+    <h2>¿Qué se rompe si quitas el blockchain?</h2>
+    <div class="signal-list" style="display:flex; flex-direction:column; gap:0.6rem;">
+      <div class="signal-item" style="background:rgba(56,189,248,0.05); border-color:rgba(56,189,248,0.15);">
+        <span class="icon">🔒</span>
+        <span><strong>Integridad de datos</strong>: Sin blockchain, los datos oceánicos pueden ser falsificados. Organismos como IMARPE o aseguradoras no confiarían en lecturas no inmutables.</span>
+      </div>
+      <div class="signal-item" style="background:rgba(56,189,248,0.05); border-color:rgba(56,189,248,0.15);">
+        <span class="icon">💰</span>
+        <span><strong>Capa de incentivos</strong>: Sin token, no hay forma de pagar a pescadores artesanales en tiempo real sin una empresa central financiando cada pago.</span>
+      </div>
+      <div class="signal-item" style="background:rgba(56,189,248,0.05); border-color:rgba(56,189,248,0.15);">
+        <span class="icon">🔓</span>
+        <span><strong>Composabilidad</strong>: Otros protocolos (seguros paramétricos, mercados de datos) pueden leer los datos on-chain sin permisos — esto no existe en un sistema centralizado.</span>
+      </div>
+    </div>
+    <p style="margin-top:0.75rem; font-size:0.82rem; color:#10b981; font-weight:600;">✓ Veredicto: Crypto es necesario, no ornamental.</p>
+  </div>
+
+  <!-- Risks -->
+  <div class="section">
+    <h2>Mapa de Riesgos</h2>
+    <div class="risk-grid">
+      <div class="risk-item risk-high">
+        <div class="risk-header">
+          <span class="risk-category" style="color:#f87171;">⚡ Hardware / Bootstrap</span>
+          <span class="risk-severity sev-high">Alto</span>
+        </div>
+        La integración IoT real (ESP32 + sensores CTD) es trabajo futuro. El MVP on-chain está construido pero sin hardware físico, la red no puede operar. Además: ¿quién financia el vault USDC inicial? Una red de 100 boyas submitting cada hora puede requerir $2,400–12,000/día en recompensas.
+      </div>
+      <div class="risk-item risk-medium">
+        <div class="risk-header">
+          <span class="risk-category" style="color:#fbbf24;">⚠ Regulatorio (cPEN)</span>
+          <span class="risk-severity sev-medium">Medio</span>
+        </div>
+        cPEN es un synthetic del Sol Peruano (PEN). Operar una stablecoin pegged a moneda local puede requerir análisis con la SBS/SUNAT. En v1, reemplazar cPEN por USDC puro eliminaría este riesgo mientras se valida el producto.
+      </div>
+      <div class="risk-item risk-medium">
+        <div class="risk-header">
+          <span class="risk-category" style="color:#fbbf24;">⚠ UX / Adopción</span>
+          <span class="risk-severity sev-medium">Medio</span>
+        </div>
+        Los pescadores artesanales necesitan conectividad, smartphone, y wallet de Solana. La curva de onboarding es alta. Considerar una interfaz de operador simplificada (SMS, app nativa) o intermediarios (cooperativas pesqueras).
+      </div>
+      <div class="risk-item risk-medium">
+        <div class="risk-header">
+          <span class="risk-category" style="color:#fbbf24;">⚠ Oracle PEN/USD</span>
+          <span class="risk-severity sev-medium">Medio</span>
+        </div>
+        La tasa 1 USDC = 3.80 cPEN está hardcodeada. En producción, el tipo de cambio PEN/USD varía. Sin un oracle en tiempo real (Pyth tiene feeds de fiat), el peg puede desviarse causando pérdidas para operadores o el protocolo.
+      </div>
+    </div>
+  </div>
+
+  <!-- Integration Assessment -->
+  <div class="section">
+    <h2>Integración vs. Desarrollo Propio</h2>
+    <div class="integration-box">
+      <p><strong>El programa on-chain personalizado es la decisión correcta.</strong> La lógica de incentivos DePIN, el vault colateralizado y el token cPEN requieren lógica on-chain propia — no hay protocolo existente que cubra exactamente este caso de uso.</p>
+      <br>
+      <p><strong>Integraciones recomendadas para acelerar:</strong></p>
+      <ul style="margin-top:0.5rem; padding-left:1.25rem; line-height:2;">
+        <li><strong>Pyth Network</strong> — Oracle PEN/USD para el peg dinámico de cPEN (en lugar del rate hardcodeado)</li>
+        <li><strong>Token-2022</strong> — Ya integrado correctamente con Transfer Fee + Metadata + Freeze Authority</li>
+        <li><strong>Marinade/Jito</strong> (futuro) — Rendimiento sobre el colateral USDC del vault cuando esté inactivo</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Next Steps -->
+  <div class="section">
+    <h2>Próximos Pasos Concretos</h2>
+    <ul class="steps-list">
+      <li class="step-item">
+        <div class="step-num">1</div>
+        <span><strong>Validación de UX con usuarios reales</strong>: conseguir 3-5 pescadores o técnicos de cooperativas pesqueras para probar el flujo completo con datos mock antes de invertir en hardware.</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">2</div>
+        <span><strong>Definir modelo de financiamiento del vault</strong>: evaluar grant de Solana Foundation (DePIN/DeSci track), co-inversión con aseguradoras pesqueras, o presupuesto de PRODUCE/FONDEPES.</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">3</div>
+        <span><strong>Consulta legal sobre cPEN</strong>: abogado fintech peruano con experiencia en SBS. Si hay riesgo, considerar lanzar v1 solo con recompensas en USDC y agregar cPEN cuando haya claridad regulatoria.</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">4</div>
+        <span><strong>Integrar Pyth para oracle PEN/USD</strong>: reemplazar el rate hardcodeado de 3.80 por un oracle en tiempo real. Pyth tiene feeds para USD/PEN.</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">5</div>
+        <span><strong>Prototipo hardware mínimo</strong>: ESP32 + sensor de temperatura DS18B20 + SIM 4G (~$40 de materiales). Suficiente para una primera prueba de concepto real en el litoral.</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">6</div>
+        <span><strong>Canal B2G</strong>: presentar datos como complemento a IMARPE/PRODUCE. Organismos públicos pueden convertirse en financiadores del vault a cambio de acceso prioritario a datos.</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">7</div>
+        <span><strong>Registrar en Colosseum Hackathon</strong>: la categoría DePIN/DeSci tiene tracción histórica. Usar <code>/colosseum-copilot</code> para ver proyectos similares que ganaron y qué diferenciaba a los ganadores.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    Generado por <strong>superstack / validate-idea</strong> · OceanSense · 05 Mayo 2026<br>
+    Proceder a Fase 2: <code>claude "/build-with-claude Help me build the MVP"</code>
+  </div>
+
+</div>
+</body>
+</html>
