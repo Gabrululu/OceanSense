@@ -1,28 +1,35 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/Navbar";
 
-const inter = Inter({ subsets: ["latin"] });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
 
 export const metadata: Metadata = {
-  title: "Ocean-Sense",
+  title: "Ocean-Sense — DePIN Ocean Monitoring on Solana",
   description:
-    "DePIN para monitoreo oceánico del litoral peruano · Powered by Solana",
+    "Decentralized ocean monitoring network for Peru's coastline. IoT buoys operated by artisanal fishers, rewarded in cPEN on Solana.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className={`${inter.className} bg-slate-950 text-slate-100 min-h-screen`}>
+    <html lang="en">
+      <body
+        className={`${spaceGrotesk.variable} bg-[#020617] text-slate-100 min-h-screen antialiased`}
+      >
         <Providers>
           <Navbar />
-          <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
+          <main className="overflow-x-hidden">{children}</main>
         </Providers>
       </body>
     </html>

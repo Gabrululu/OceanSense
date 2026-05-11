@@ -57,7 +57,7 @@ export default function ReadingPage() {
 
   if (!connected) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-4">
         <Waves size={48} className="text-slate-600" />
         <p className="text-slate-400">Conecta tu wallet para enviar lecturas.</p>
       </div>
@@ -65,7 +65,7 @@ export default function ReadingPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto px-4 pt-24 pb-12 space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Boya IoT</h1>
         <p className="text-slate-400 text-sm mt-1">
