@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
 import { Waves, Send, PlusCircle, AlertTriangle } from "lucide-react";
 import clsx from "clsx";
 
@@ -16,6 +17,7 @@ const POLLUTION_LABELS = [
 export default function ReadingPage() {
   const { connected } = useWallet();
   const { buoys, loading, txStatus, registerBuoy, submitReading } = useOceanSense();
+  const { rate } = useExchangeRate();
 
   const [tab, setTab] = useState<"register" | "reading">("reading");
 
@@ -173,12 +175,10 @@ export default function ReadingPage() {
                   : reading.pollutionLevel === 2
                   ? "2.00 USDC"
                   : "1.00 USDC"}{" "}
-                → {" "}
-                {reading.pollutionLevel === 3
-                  ? "19.00 cPEN"
-                  : reading.pollutionLevel === 2
-                  ? "7.60 cPEN"
-                  : "3.80 cPEN"}
+                →{" "}
+                {(
+                  (reading.pollutionLevel === 3 ? 5 : reading.pollutionLevel === 2 ? 2 : 1) * rate
+                ).toFixed(2)} cPEN
               </span>
             </div>
           </Card>

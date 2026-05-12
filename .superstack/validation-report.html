@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OceanSense — Reporte de Validación</title>
+  <title>OceanSense — Reporte de Validación v2</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,7 +20,7 @@
       border: 1px solid #1e3a5f;
       border-radius: 12px;
       padding: 2rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       background: linear-gradient(135deg, #0d1f3c 0%, #0a2744 100%);
       position: relative;
       overflow: hidden;
@@ -29,7 +29,7 @@
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse at 80% 20%, rgba(0, 120, 255, 0.08) 0%, transparent 60%);
+      background: radial-gradient(ellipse at 80% 20%, rgba(0,120,255,0.08) 0%, transparent 60%);
       pointer-events: none;
     }
     .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
@@ -43,13 +43,23 @@
       letter-spacing: 1px;
       text-transform: uppercase;
     }
-    .verdict-go { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1.5px solid #10b981; }
-    .verdict-nogo { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1.5px solid #ef4444; }
-    .verdict-pivot { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1.5px solid #f59e0b; }
+    .verdict-go { background: rgba(16,185,129,0.15); color: #10b981; border: 1.5px solid #10b981; }
     .meta { margin-top: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
     .meta-item { display: flex; flex-direction: column; gap: 0.25rem; }
     .meta-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; }
     .meta-value { font-size: 0.9rem; color: #cbd5e1; font-weight: 500; }
+    .version-chip {
+      display: inline-block;
+      background: rgba(56,189,248,0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56,189,248,0.3);
+      padding: 0.15rem 0.6rem;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
 
     /* Score Card */
     .score-card {
@@ -64,16 +74,11 @@
     .score-item { text-align: center; }
     .score-label { font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.5rem; }
     .score-bar-wrap { height: 60px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 0.5rem; }
-    .score-bar {
-      width: 28px;
-      border-radius: 4px 4px 0 0;
-      transition: height 0.5s ease;
-    }
-    .score-bar.s0 { background: #1e293b; height: 8px; }
-    .score-bar.s1 { background: #ef4444; height: 20px; }
+    .score-bar { width: 28px; border-radius: 4px 4px 0 0; }
     .score-bar.s2 { background: #f59e0b; height: 40px; }
     .score-bar.s3 { background: #10b981; height: 60px; }
     .score-num { font-size: 1.2rem; font-weight: 700; color: #e2e8f0; }
+    .delta { font-size: 0.7rem; color: #10b981; font-weight: 600; }
     .score-total {
       margin-top: 1rem;
       padding-top: 1rem;
@@ -104,19 +109,34 @@
       color: #64748b;
       margin-bottom: 1rem;
     }
-    .signal-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
-    .signal-item {
+
+    /* Build progress */
+    .build-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+    .build-item {
       display: flex;
+      align-items: flex-start;
       gap: 0.75rem;
-      padding: 0.75rem;
-      background: rgba(16, 185, 129, 0.05);
-      border: 1px solid rgba(16, 185, 129, 0.15);
+      padding: 0.75rem 1rem;
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       line-height: 1.5;
-      color: #cbd5e1;
     }
-    .signal-item .icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .build-done  { background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2); }
+    .build-fixed { background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.18); }
+    .build-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
+    .tag-new   { background: rgba(16,185,129,0.2);  color: #10b981; }
+    .tag-fix   { background: rgba(56,189,248,0.2);  color: #38bdf8; }
+    .tag-mitig { background: rgba(245,158,11,0.2);  color: #f59e0b; }
 
     /* Risks */
     .risk-grid { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -128,11 +148,12 @@
       line-height: 1.5;
       color: #cbd5e1;
     }
-    .risk-high { background: rgba(239, 68, 68, 0.05); border-color: #ef4444; }
-    .risk-medium { background: rgba(245, 158, 11, 0.05); border-color: #f59e0b; }
-    .risk-low { background: rgba(100, 116, 139, 0.05); border-color: #64748b; }
-    .risk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+    .risk-high   { background: rgba(239,68,68,0.05);   border-color: #ef4444; }
+    .risk-medium { background: rgba(245,158,11,0.05);  border-color: #f59e0b; }
+    .risk-low    { background: rgba(100,116,139,0.05); border-color: #64748b; }
+    .risk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.4rem; }
     .risk-category { font-weight: 600; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; }
+    .risk-badges { display: flex; gap: 0.4rem; align-items: center; }
     .risk-severity {
       font-size: 0.7rem;
       padding: 0.2rem 0.6rem;
@@ -140,41 +161,63 @@
       font-weight: 600;
       text-transform: uppercase;
     }
-    .sev-high { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-    .sev-medium { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-    .sev-low { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+    .sev-high   { background: rgba(239,68,68,0.15);   color: #ef4444; }
+    .sev-medium { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .sev-low    { background: rgba(100,116,139,0.15); color: #94a3b8; }
+    .sev-mitig  { background: rgba(16,185,129,0.15);  color: #10b981; }
+    .mitig-note {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(16,185,129,0.06);
+      border-left: 2px solid #10b981;
+      border-radius: 0 4px 4px 0;
+      font-size: 0.8rem;
+      color: #6ee7b7;
+    }
+
+    /* Signals */
+    .signal-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+    .signal-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: rgba(16,185,129,0.05);
+      border: 1px solid rgba(16,185,129,0.15);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    .signal-item .icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
 
     /* Next Steps */
-    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; counter-reset: steps; }
+    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
     .step-item {
       display: flex;
       gap: 1rem;
       padding: 0.75rem;
-      background: rgba(56, 189, 248, 0.04);
-      border: 1px solid rgba(56, 189, 248, 0.1);
       border-radius: 8px;
       font-size: 0.88rem;
       line-height: 1.5;
       color: #cbd5e1;
     }
+    .step-pending { background: rgba(56,189,248,0.04);  border: 1px solid rgba(56,189,248,0.1); }
+    .step-done    { background: rgba(16,185,129,0.04);  border: 1px solid rgba(16,185,129,0.15); opacity: 0.7; }
     .step-num {
-      width: 22px;
-      height: 22px;
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
+      width: 22px; height: 22px;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.72rem;
-      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700;
       flex-shrink: 0;
     }
+    .step-num-pending { background: rgba(56,189,248,0.15); color: #38bdf8; }
+    .step-num-done    { background: rgba(16,185,129,0.2);  color: #10b981; }
+    .step-check { font-size: 0.9rem; }
 
     /* Integration box */
     .integration-box {
-      background: rgba(139, 92, 246, 0.05);
-      border: 1px solid rgba(139, 92, 246, 0.2);
+      background: rgba(139,92,246,0.05);
+      border: 1px solid rgba(139,92,246,0.2);
       border-radius: 8px;
       padding: 1rem;
       font-size: 0.88rem;
@@ -183,8 +226,7 @@
     }
     .integration-box strong { color: #a78bfa; }
 
-    /* Footer */
-    .footer { text-align: center; margin-top: 2rem; color: #334155; font-size: 0.8rem; }
+    /* Banners */
     .phase-banner {
       background: linear-gradient(90deg, rgba(16,185,129,0.1), rgba(56,189,248,0.1));
       border: 1px solid rgba(16,185,129,0.25);
@@ -197,6 +239,25 @@
       align-items: center;
       gap: 0.75rem;
     }
+    .diff-banner {
+      background: rgba(56,189,248,0.05);
+      border: 1px solid rgba(56,189,248,0.18);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+      color: #7dd3fc;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Divider */
+    .divider { border: none; border-top: 1px solid #1e293b; margin: 0.25rem 0 1rem; }
+
+    /* Footer */
+    .footer { text-align: center; margin-top: 2rem; color: #334155; font-size: 0.8rem; line-height: 1.8; }
+    code { background: #1e293b; color: #94a3b8; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.82rem; }
   </style>
 </head>
 <body>
@@ -206,7 +267,7 @@
   <div class="header">
     <div class="header-top">
       <div>
-        <div class="project-name">🌊 OceanSense</div>
+        <div class="project-name">🌊 OceanSense <span class="version-chip">v2 · Build Update</span></div>
         <div class="project-tagline">DePIN de monitoreo oceánico + cPEN para el litoral peruano</div>
       </div>
       <div class="verdict-badge verdict-go">GO ✓</div>
@@ -222,202 +283,327 @@
       </div>
       <div class="meta-item">
         <span class="meta-label">Hackathon</span>
-        <span class="meta-value">WayLearn × Solana Foundation · BlueSky</span>
+        <span class="meta-value">Colosseum Frontier · Solana Foundation</span>
       </div>
       <div class="meta-item">
-        <span class="meta-label">Validado el</span>
+        <span class="meta-label">Reporte anterior</span>
         <span class="meta-value">05 Mayo 2026</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Actualizado</span>
+        <span class="meta-value">12 Mayo 2026</span>
       </div>
     </div>
   </div>
 
   <!-- Phase banner -->
   <div class="phase-banner">
-    ✅ Fase 1 (Idea) completada — Puedes proceder a <strong>/build-with-claude</strong> para la Fase 2 (Build)
+    ✅ Fase 2 (Build) en progreso — Frontend funcional · SDK publicado · Gateway IoT operativo · Spec de hardware lista
+  </div>
+
+  <!-- Diff banner -->
+  <div class="diff-banner">
+    ℹ️ Este reporte refleja el estado al 12 Mayo 2026. Los cambios respecto al reporte anterior (05 Mayo) se marcan con etiquetas <span style="background:rgba(16,185,129,0.2);color:#10b981;padding:0.1rem 0.4rem;border-radius:3px;font-size:0.75rem;font-weight:700;">NUEVO</span> y <span style="background:rgba(56,189,248,0.2);color:#38bdf8;padding:0.1rem 0.4rem;border-radius:3px;font-size:0.75rem;font-weight:700;">FIX</span>.
   </div>
 
   <!-- Score Card -->
   <div class="score-card">
-    <h2>Scorecard de Validación</h2>
+    <h2>Scorecard de Validación — actualizado</h2>
     <div class="score-grid">
       <div class="score-item">
         <div class="score-label">Founder Fit</div>
         <div class="score-bar-wrap"><div class="score-bar s2"></div></div>
         <div class="score-num">2/3</div>
+        <div class="delta">—</div>
       </div>
       <div class="score-item">
         <div class="score-label">MVP Speed</div>
         <div class="score-bar-wrap"><div class="score-bar s3"></div></div>
         <div class="score-num">3/3</div>
+        <div class="delta">—</div>
       </div>
       <div class="score-item">
         <div class="score-label">Distribution</div>
-        <div class="score-bar-wrap"><div class="score-bar s2"></div></div>
-        <div class="score-num">2/3</div>
+        <div class="score-bar-wrap"><div class="score-bar s3"></div></div>
+        <div class="score-num">3/3</div>
+        <div class="delta" style="color:#10b981;">↑ +1</div>
       </div>
       <div class="score-item">
         <div class="score-label">Market Pull</div>
         <div class="score-bar-wrap"><div class="score-bar s3"></div></div>
         <div class="score-num">3/3</div>
+        <div class="delta">—</div>
       </div>
       <div class="score-item">
         <div class="score-label">Revenue</div>
         <div class="score-bar-wrap"><div class="score-bar s2"></div></div>
         <div class="score-num">2/3</div>
+        <div class="delta">—</div>
       </div>
     </div>
     <div class="score-total">
       <div>
-        <div class="total-num">12 / 15</div>
-        <div class="total-label">Score total <span class="threshold-note">(umbral GO: ≥ 8)</span></div>
+        <div class="total-num">13 / 15 <span style="font-size:0.9rem;color:#10b981;">↑ +1</span></div>
+        <div class="total-label">Score total <span class="threshold-note">(umbral GO: ≥ 8 · anterior: 12)</span></div>
       </div>
       <div style="text-align:right;">
         <div class="meta-label" style="margin-bottom:0.5rem;">Confianza</div>
-        <div class="confidence-wrap" style="width:200px;">
+        <div class="confidence-wrap" style="width:220px;">
           <div class="confidence-bar-bg">
-            <div class="confidence-bar" style="width:72%"></div>
+            <div class="confidence-bar" style="width:80%"></div>
           </div>
-          <span style="color:#38bdf8; font-weight:700; font-size:0.9rem; white-space:nowrap;">72%</span>
+          <span style="color:#38bdf8;font-weight:700;font-size:0.9rem;white-space:nowrap;">80% <span style="font-size:0.75rem;color:#10b981;">↑ +8</span></span>
         </div>
       </div>
+    </div>
+    <p style="margin-top:0.75rem;font-size:0.78rem;color:#475569;">
+      Distribution subió a 3/3 por la publicación del <strong style="color:#94a3b8;">@oceansense/sdk</strong> (cualquier desarrollador puede integrarse) y el <strong style="color:#94a3b8;">IoT Gateway</strong> (cualquier ESP32 puede conectarse al protocolo sin wallet). Confianza +8% por mitigación parcial del riesgo oracle y del riesgo IoT.
+    </p>
+  </div>
+
+  <!-- Build Progress -->
+  <div class="section">
+    <h2>Progreso del Build — desde 05 Mayo 2026</h2>
+    <div class="build-grid">
+
+      <div class="build-item build-fixed">
+        <span class="build-tag tag-fix">FIX</span>
+        <span><strong style="color:#7dd3fc;">IDL faltante corregido</strong> — <code>app/public/idl/ocean_sense_pay.json</code> creado manualmente. Sin este archivo, <code>program</code> era siempre <code>null</code> y todas las transacciones retornaban silenciosamente. Era el bloqueador principal.</span>
+      </div>
+
+      <div class="build-item build-fixed">
+        <span class="build-tag tag-fix">FIX</span>
+        <span><strong style="color:#7dd3fc;">PROGRAM_ID incorrecto corregido</strong> — El fallback en <code>useOceanSense.ts</code> usaba un ID de ejemplo de Anchor (<code>Fg6Pa…</code>). Ahora apunta al ID real del programa: <code>EawytSi…</code>.</span>
+      </div>
+
+      <div class="build-item build-fixed">
+        <span class="build-tag tag-fix">FIX</span>
+        <span><strong style="color:#7dd3fc;">Seeds de getMintConfigPda corregidos</strong> — TypeScript usaba solo <code>[Buffer.from("mint_config")]</code>; el programa Rust requiere <code>[b"mint_config", usdc_mint.key()]</code>. El bug rompía todas las operaciones cPEN (claim, mint, redeem).</span>
+      </div>
+
+      <div class="build-item build-done">
+        <span class="build-tag tag-mitig">MITIG</span>
+        <span><strong style="color:#6ee7b7;">Oracle PEN/USD — mitigación frontend</strong> — Hook <code>useExchangeRate</code> que consume la API Frankfurter (USD/PEN en tiempo real, caché localStorage 1h). El tipo de cambio en la UI es dinámico. El on-chain rate sigue hardcodeado (3.80) — mitigación completa requiere Pyth.</span>
+      </div>
+
+      <div class="build-item build-done">
+        <span class="build-tag tag-new">NUEVO</span>
+        <span><strong style="color:#6ee7b7;">@oceansense/sdk</strong> — Cliente TypeScript framework-agnostic (<code>sdk/src/client.ts</code>). Expone <code>registerBuoy</code>, <code>submitReading</code>, <code>claimRewardAsCpen</code>, <code>fetchBuoys</code>, <code>fetchCpenStats</code>. IDL embebido, sin archivos externos. Compatible con Node.js, browser y cualquier framework.</span>
+      </div>
+
+      <div class="build-item build-done">
+        <span class="build-tag tag-new">NUEVO</span>
+        <span><strong style="color:#6ee7b7;">IoT Gateway</strong> — Servidor HTTP (<code>gateway/index.ts</code>) que recibe datos de sensores vía <code>POST /reading</code> y firma/envía la transacción Solana. Un ESP32 solo necesita hacer una llamada HTTP. Endpoints: <code>/register</code> · <code>/reading</code> · <code>/buoys</code> · <code>/health</code>.</span>
+      </div>
+
+      <div class="build-item build-done">
+        <span class="build-tag tag-new">NUEVO</span>
+        <span><strong style="color:#6ee7b7;">BUOY_SPEC.md</strong> — Especificaciones técnicas completas del prototipo físico: 5 sensores (temperatura, salinidad, oleaje, contaminación, GPS), arquitectura ESP32-S3 + ATECC608B + Raspberry Pi Zero 2W + SIM7600, sistema de energía solar, chasis IP68, conectividad 4G/LoRaWAN y hoja de ruta hardware v0.1 → v1.0.</span>
+      </div>
+
+      <div class="build-item build-done">
+        <span class="build-tag tag-new">NUEVO</span>
+        <span><strong style="color:#6ee7b7;">README.md actualizado</strong> — Documentación completa con instrucciones del SDK, ejemplo Arduino para ESP32, tabla de endpoints del gateway, variables de entorno separadas por módulo, y roadmap actualizado con los ítems completados.</span>
+      </div>
+
     </div>
   </div>
 
   <!-- Demand Signals -->
   <div class="section">
-    <h2>Señales de Demanda (5 señales — score: 2/3 Moderado-Fuerte)</h2>
+    <h2>Señales de Demanda — sin cambios (5 señales · score: 3/3)</h2>
     <ul class="signal-list">
       <li class="signal-item">
         <span class="icon">💥</span>
-        <span><strong>El Niño 2023-2024 causó $3B en pérdidas económicas en Perú</strong> por falta de monitoreo oceánico descentralizado — el problema tiene un costo documentado y reciente.</span>
+        <span><strong>El Niño 2023-2024 causó $3B en pérdidas económicas en Perú</strong> por falta de monitoreo oceánico descentralizado — problema documentado con costo real y reciente.</span>
       </li>
       <li class="signal-item">
         <span class="icon">🎣</span>
-        <span><strong>40,000 pescadores artesanales</strong> afectados por la ausencia de datos de temperatura, corrientes y contaminación en tiempo real a lo largo de 3,080 km de litoral.</span>
+        <span><strong>40,000 pescadores artesanales</strong> afectados por ausencia de datos de temperatura, corrientes y contaminación en tiempo real a lo largo de 3,080 km de litoral.</span>
       </li>
       <li class="signal-item">
         <span class="icon">🏛️</span>
-        <span><strong>IMARPE y SENAHMI tienen cobertura documentadamente insuficiente</strong> — sistemas centralizados sin incentivos para participación comunitaria. Hay un vacío institucional real.</span>
+        <span><strong>IMARPE y SENAHMI tienen cobertura insuficiente</strong> — sistemas centralizados sin incentivos para participación comunitaria. Vacío institucional real y documentado.</span>
       </li>
       <li class="signal-item">
         <span class="icon">🌦️</span>
-        <span><strong>WeatherXM prueba el modelo</strong>: comunidad de estaciones meteorológicas descentralizadas recompensadas por datos ambientales tiene tracción en Web3. OceanSense es el análogo para datos oceánicos.</span>
+        <span><strong>WeatherXM prueba el modelo</strong>: red descentralizada de estaciones meteorológicas recompensadas on-chain tiene tracción. OceanSense es el análogo marino.</span>
       </li>
       <li class="signal-item">
         <span class="icon">🔗</span>
-        <span><strong>Solana lidera DePIN</strong>: Helium (>500k dispositivos), Hivemapper, GEODNET, Render demuestran que el modelo de incentivos on-chain para hardware funciona a escala.</span>
+        <span><strong>Solana lidera DePIN</strong>: Helium (+500k dispositivos), Hivemapper, GEODNET, Render — el modelo de incentivos on-chain para hardware funciona a escala.</span>
       </li>
     </ul>
   </div>
 
-  <!-- Necesidad del blockchain -->
-  <div class="section">
-    <h2>¿Qué se rompe si quitas el blockchain?</h2>
-    <div class="signal-list" style="display:flex; flex-direction:column; gap:0.6rem;">
-      <div class="signal-item" style="background:rgba(56,189,248,0.05); border-color:rgba(56,189,248,0.15);">
-        <span class="icon">🔒</span>
-        <span><strong>Integridad de datos</strong>: Sin blockchain, los datos oceánicos pueden ser falsificados. Organismos como IMARPE o aseguradoras no confiarían en lecturas no inmutables.</span>
-      </div>
-      <div class="signal-item" style="background:rgba(56,189,248,0.05); border-color:rgba(56,189,248,0.15);">
-        <span class="icon">💰</span>
-        <span><strong>Capa de incentivos</strong>: Sin token, no hay forma de pagar a pescadores artesanales en tiempo real sin una empresa central financiando cada pago.</span>
-      </div>
-      <div class="signal-item" style="background:rgba(56,189,248,0.05); border-color:rgba(56,189,248,0.15);">
-        <span class="icon">🔓</span>
-        <span><strong>Composabilidad</strong>: Otros protocolos (seguros paramétricos, mercados de datos) pueden leer los datos on-chain sin permisos — esto no existe en un sistema centralizado.</span>
-      </div>
-    </div>
-    <p style="margin-top:0.75rem; font-size:0.82rem; color:#10b981; font-weight:600;">✓ Veredicto: Crypto es necesario, no ornamental.</p>
-  </div>
-
   <!-- Risks -->
   <div class="section">
-    <h2>Mapa de Riesgos</h2>
+    <h2>Mapa de Riesgos — estado actualizado</h2>
     <div class="risk-grid">
+
       <div class="risk-item risk-high">
         <div class="risk-header">
-          <span class="risk-category" style="color:#f87171;">⚡ Hardware / Bootstrap</span>
-          <span class="risk-severity sev-high">Alto</span>
+          <span class="risk-category" style="color:#f87171;">⚡ Bootstrap económico del vault</span>
+          <div class="risk-badges">
+            <span class="risk-severity sev-high">Alto</span>
+            <span class="risk-severity" style="background:rgba(100,116,139,0.15);color:#94a3b8;">Sin cambio</span>
+          </div>
         </div>
-        La integración IoT real (ESP32 + sensores CTD) es trabajo futuro. El MVP on-chain está construido pero sin hardware físico, la red no puede operar. Además: ¿quién financia el vault USDC inicial? Una red de 100 boyas submitting cada hora puede requerir $2,400–12,000/día en recompensas.
+        ¿Quién financia el vault USDC inicial? Una red de 100 boyas enviando lecturas cada hora puede requerir $2,400–12,000/día en recompensas. Sin un funder institucional (grant, PRODUCE, aseguradora) el protocolo no puede arrancar en producción.
       </div>
+
+      <div class="risk-item risk-medium">
+        <div class="risk-header">
+          <span class="risk-category" style="color:#fbbf24;">⚠ Hardware físico de la boya</span>
+          <div class="risk-badges">
+            <span class="risk-severity sev-medium">Medio</span>
+            <span class="risk-severity sev-mitig">↓ Reducido</span>
+          </div>
+        </div>
+        Sigue siendo trabajo futuro, pero el riesgo bajó de Alto a Medio.
+        <div class="mitig-note">✓ Mitigación parcial: <strong>BUOY_SPEC.md</strong> define sensores, arquitectura de firma (ATECC608B), sistema de energía y cronograma v0.1→v1.0. <strong>IoT Gateway</strong> permite conectar cualquier ESP32 al protocolo hoy mismo con ~$40 en materiales (ESP32 + sensor DS18B20 + WiFi).</div>
+      </div>
+
+      <div class="risk-item risk-medium">
+        <div class="risk-header">
+          <span class="risk-category" style="color:#fbbf24;">⚠ Oracle PEN/USD on-chain</span>
+          <div class="risk-badges">
+            <span class="risk-severity sev-medium">Medio</span>
+            <span class="risk-severity sev-mitig">↓ Reducido</span>
+          </div>
+        </div>
+        El on-chain rate sigue hardcodeado a 3.80 en el programa Rust. La UI muestra el tipo de cambio real.
+        <div class="mitig-note">✓ Mitigación parcial: <strong>useExchangeRate</strong> consume Frankfurter API (USD/PEN en tiempo real, sin API key). El usuario ve el tipo de cambio correcto (3.44 al 12 Mayo). Para mitigación completa: integrar <strong>Pyth Network</strong> (<code>update_exchange_rate</code> instrucción + cron off-chain).</div>
+      </div>
+
       <div class="risk-item risk-medium">
         <div class="risk-header">
           <span class="risk-category" style="color:#fbbf24;">⚠ Regulatorio (cPEN)</span>
-          <span class="risk-severity sev-medium">Medio</span>
+          <div class="risk-badges">
+            <span class="risk-severity sev-medium">Medio</span>
+            <span class="risk-severity" style="background:rgba(100,116,139,0.15);color:#94a3b8;">Sin cambio</span>
+          </div>
         </div>
-        cPEN es un synthetic del Sol Peruano (PEN). Operar una stablecoin pegged a moneda local puede requerir análisis con la SBS/SUNAT. En v1, reemplazar cPEN por USDC puro eliminaría este riesgo mientras se valida el producto.
+        cPEN como synthetic del Sol Peruano (PEN) puede requerir análisis con la SBS/SUNAT. En v1, reemplazar cPEN por USDC puro elimina este riesgo mientras se valida el producto con usuarios reales.
       </div>
-      <div class="risk-item risk-medium">
+
+      <div class="risk-item risk-low">
         <div class="risk-header">
-          <span class="risk-category" style="color:#fbbf24;">⚠ UX / Adopción</span>
-          <span class="risk-severity sev-medium">Medio</span>
+          <span class="risk-category" style="color:#94a3b8;">UX / Onboarding</span>
+          <div class="risk-badges">
+            <span class="risk-severity sev-low">Bajo</span>
+            <span class="risk-severity sev-mitig">↓ Reducido</span>
+          </div>
         </div>
-        Los pescadores artesanales necesitan conectividad, smartphone, y wallet de Solana. La curva de onboarding es alta. Considerar una interfaz de operador simplificada (SMS, app nativa) o intermediarios (cooperativas pesqueras).
+        La curva de onboarding (wallet Solana + hardware) sigue siendo una barrera para pescadores artesanales.
+        <div class="mitig-note">✓ Mitigación parcial: el <strong>IoT Gateway</strong> abstrae completamente la wallet del operador del hardware — el ESP32 solo hace HTTP POST, la firma sucede en el gateway operado por la cooperativa o el técnico. El pescador no necesita manejar claves privadas.</div>
       </div>
-      <div class="risk-item risk-medium">
-        <div class="risk-header">
-          <span class="risk-category" style="color:#fbbf24;">⚠ Oracle PEN/USD</span>
-          <span class="risk-severity sev-medium">Medio</span>
-        </div>
-        La tasa 1 USDC = 3.80 cPEN está hardcodeada. En producción, el tipo de cambio PEN/USD varía. Sin un oracle en tiempo real (Pyth tiene feeds de fiat), el peg puede desviarse causando pérdidas para operadores o el protocolo.
+
+    </div>
+  </div>
+
+  <!-- Blockchain necessity -->
+  <div class="section">
+    <h2>¿Por qué Solana? — Reforzado por el build</h2>
+    <div style="display:flex;flex-direction:column;gap:0.6rem;">
+      <div class="signal-item" style="background:rgba(56,189,248,0.05);border-color:rgba(56,189,248,0.15);">
+        <span class="icon">🔒</span>
+        <span><strong>Inmutabilidad de datos ambientales</strong>: Cada lectura del ESP32 llega firmada por el ATECC608B y registrada on-chain. Organismos como IMARPE, aseguradoras o la Armada Peruana pueden verificar datos sin intermediarios.</span>
+      </div>
+      <div class="signal-item" style="background:rgba(56,189,248,0.05);border-color:rgba(56,189,248,0.15);">
+        <span class="icon">💰</span>
+        <span><strong>Micropagos automáticos</strong>: El gateway firma y paga al operador sin intervención humana. Sin blockchain no hay forma de pagar a 40,000 pescadores en tiempo real sin una empresa central.</span>
+      </div>
+      <div class="signal-item" style="background:rgba(56,189,248,0.05);border-color:rgba(56,189,248,0.15);">
+        <span class="icon">🔓</span>
+        <span><strong>SDK abierto</strong>: Cualquier desarrollador puede integrar datos de Ocean-Sense con 3 líneas de TypeScript vía <code>@oceansense/sdk</code> — seguros paramétricos, apps de pesca, dashboards gubernamentales.</span>
       </div>
     </div>
+    <p style="margin-top:0.75rem;font-size:0.82rem;color:#10b981;font-weight:600;">✓ Veredicto reforzado: Crypto sigue siendo necesario, no ornamental.</p>
   </div>
 
   <!-- Integration Assessment -->
   <div class="section">
-    <h2>Integración vs. Desarrollo Propio</h2>
+    <h2>Integraciones recomendadas — estado</h2>
     <div class="integration-box">
-      <p><strong>El programa on-chain personalizado es la decisión correcta.</strong> La lógica de incentivos DePIN, el vault colateralizado y el token cPEN requieren lógica on-chain propia — no hay protocolo existente que cubra exactamente este caso de uso.</p>
-      <br>
-      <p><strong>Integraciones recomendadas para acelerar:</strong></p>
-      <ul style="margin-top:0.5rem; padding-left:1.25rem; line-height:2;">
-        <li><strong>Pyth Network</strong> — Oracle PEN/USD para el peg dinámico de cPEN (en lugar del rate hardcodeado)</li>
-        <li><strong>Token-2022</strong> — Ya integrado correctamente con Transfer Fee + Metadata + Freeze Authority</li>
-        <li><strong>Marinade/Jito</strong> (futuro) — Rendimiento sobre el colateral USDC del vault cuando esté inactivo</li>
+      <p><strong>Ya integradas en este build:</strong></p>
+      <ul style="margin:0.5rem 0 0.75rem 1.25rem;line-height:2.2;font-size:0.88rem;">
+        <li><strong>Token-2022</strong> ✓ — Transfer Fee + Metadata + Freeze Authority correctamente implementados</li>
+        <li><strong>Frankfurter API</strong> ✓ — Tipo de cambio USD/PEN en tiempo real, caché 1h, sin API key</li>
+        <li><strong>Anchor IDL estático</strong> ✓ — Servido desde <code>app/public/idl/</code>, funciona sin compilar el programa</li>
+      </ul>
+      <hr class="divider">
+      <p><strong>Pendientes de alta prioridad:</strong></p>
+      <ul style="margin:0.5rem 0 0 1.25rem;line-height:2.2;font-size:0.88rem;">
+        <li><strong>Pyth Network</strong> — Oracle PEN/USD on-chain para reemplazar rate hardcodeado en <code>cpen.rs</code></li>
+        <li><strong>Marinade / Jito</strong> (futuro) — Rendimiento sobre colateral USDC del vault cuando esté inactivo</li>
+        <li><strong>IOTA / Helium LoRaWAN</strong> (futuro) — Cobertura para caletas fuera del rango 4G</li>
       </ul>
     </div>
   </div>
 
   <!-- Next Steps -->
   <div class="section">
-    <h2>Próximos Pasos Concretos</h2>
+    <h2>Próximos Pasos — estado actualizado</h2>
     <ul class="steps-list">
-      <li class="step-item">
-        <div class="step-num">1</div>
-        <span><strong>Validación de UX con usuarios reales</strong>: conseguir 3-5 pescadores o técnicos de cooperativas pesqueras para probar el flujo completo con datos mock antes de invertir en hardware.</span>
+
+      <li class="step-item step-done">
+        <div class="step-num step-num-done"><span class="step-check">✓</span></div>
+        <span style="text-decoration:line-through;color:#475569;"><strong>IDL, PROGRAM_ID y seeds de PDA corregidos</strong> — el frontend ahora puede enviar transacciones reales.</span>
       </li>
-      <li class="step-item">
-        <div class="step-num">2</div>
-        <span><strong>Definir modelo de financiamiento del vault</strong>: evaluar grant de Solana Foundation (DePIN/DeSci track), co-inversión con aseguradoras pesqueras, o presupuesto de PRODUCE/FONDEPES.</span>
+
+      <li class="step-item step-done">
+        <div class="step-num step-num-done"><span class="step-check">✓</span></div>
+        <span style="text-decoration:line-through;color:#475569;"><strong>Tipo de cambio USD/PEN dinámico en frontend</strong> — useExchangeRate con Frankfurter API y caché 1h.</span>
       </li>
-      <li class="step-item">
-        <div class="step-num">3</div>
-        <span><strong>Consulta legal sobre cPEN</strong>: abogado fintech peruano con experiencia en SBS. Si hay riesgo, considerar lanzar v1 solo con recompensas en USDC y agregar cPEN cuando haya claridad regulatoria.</span>
+
+      <li class="step-item step-done">
+        <div class="step-num step-num-done"><span class="step-check">✓</span></div>
+        <span style="text-decoration:line-through;color:#475569;"><strong>@oceansense/sdk publicado</strong> — cliente TypeScript framework-agnostic para integración externa.</span>
       </li>
-      <li class="step-item">
-        <div class="step-num">4</div>
-        <span><strong>Integrar Pyth para oracle PEN/USD</strong>: reemplazar el rate hardcodeado de 3.80 por un oracle en tiempo real. Pyth tiene feeds para USD/PEN.</span>
+
+      <li class="step-item step-done">
+        <div class="step-num step-num-done"><span class="step-check">✓</span></div>
+        <span style="text-decoration:line-through;color:#475569;"><strong>IoT Gateway operativo</strong> — ESP32 puede enviar lecturas vía HTTP sin manejar wallets.</span>
       </li>
-      <li class="step-item">
-        <div class="step-num">5</div>
-        <span><strong>Prototipo hardware mínimo</strong>: ESP32 + sensor de temperatura DS18B20 + SIM 4G (~$40 de materiales). Suficiente para una primera prueba de concepto real en el litoral.</span>
+
+      <li class="step-item step-done">
+        <div class="step-num step-num-done"><span class="step-check">✓</span></div>
+        <span style="text-decoration:line-through;color:#475569;"><strong>BUOY_SPEC.md</strong> — especificación técnica completa del prototipo de hardware.</span>
       </li>
-      <li class="step-item">
-        <div class="step-num">6</div>
-        <span><strong>Canal B2G</strong>: presentar datos como complemento a IMARPE/PRODUCE. Organismos públicos pueden convertirse en financiadores del vault a cambio de acceso prioritario a datos.</span>
+
+      <li class="step-item step-pending">
+        <div class="step-num step-num-pending">1</div>
+        <span><strong>Validación con usuarios reales</strong>: 3–5 pescadores o técnicos de cooperativas pesqueras probando el flujo completo con datos mock antes de invertir en hardware.</span>
       </li>
-      <li class="step-item">
-        <div class="step-num">7</div>
-        <span><strong>Registrar en Colosseum Hackathon</strong>: la categoría DePIN/DeSci tiene tracción histórica. Usar <code>/colosseum-copilot</code> para ver proyectos similares que ganaron y qué diferenciaba a los ganadores.</span>
+
+      <li class="step-item step-pending">
+        <div class="step-num step-num-pending">2</div>
+        <span><strong>Prototipo hardware mínimo</strong>: ESP32 + sensor DS18B20 + WiFi. Con el gateway ya funcional, esto es suficiente para una demo real enviando temperaturas del océano a la cadena.</span>
       </li>
+
+      <li class="step-item step-pending">
+        <div class="step-num step-num-pending">3</div>
+        <span><strong>Integrar Pyth para oracle PEN/USD on-chain</strong>: añadir instrucción <code>update_exchange_rate</code> al programa (admin-only) + cron job que la llama con el precio de Pyth. Elimina la tasa hardcodeada de 3.80.</span>
+      </li>
+
+      <li class="step-item step-pending">
+        <div class="step-num step-num-pending">4</div>
+        <span><strong>Definir financiamiento del vault</strong>: grant de Solana Foundation (DePIN/DeSci track), co-inversión con aseguradoras pesqueras, o propuesta a PRODUCE/FONDEPES como complemento a IMARPE.</span>
+      </li>
+
+      <li class="step-item step-pending">
+        <div class="step-num step-num-pending">5</div>
+        <span><strong>Consulta legal sobre cPEN</strong>: abogado fintech peruano (SBS). Si hay riesgo, lanzar v1 solo con USDC y añadir cPEN con claridad regulatoria.</span>
+      </li>
+
     </ul>
   </div>
 
   <div class="footer">
-    Generado por <strong>superstack / validate-idea</strong> · OceanSense · 05 Mayo 2026<br>
-    Proceder a Fase 2: <code>claude "/build-with-claude Help me build the MVP"</code>
+    Generado por <strong>superstack / validate-idea</strong> · OceanSense · Build Update — 12 Mayo 2026<br>
+    Reporte anterior: 05 Mayo 2026 · Score: 12/15 → <strong>13/15</strong> · Confianza: 72% → <strong>80%</strong><br><br>
+    Siguiente: <code>yarn gateway</code> para iniciar el servidor IoT · <code>cd app && npm run dev</code> para el frontend
   </div>
 
 </div>

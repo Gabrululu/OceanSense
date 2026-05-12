@@ -1,0 +1,23 @@
+{
+  "name": "@oceansense/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for interacting with the OceanSense on-chain program",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@coral-xyz/anchor": ">=0.29.0",
+    "@solana/spl-token": ">=0.4.0",
+    "@solana/web3.js": ">=1.95.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": ["solana", "depin", "ocean", "peru", "cpen", "anchor"],
+  "license": "MIT"
+}

@@ -18,7 +18,7 @@ import {
 // ── Constantes ───────────────────────────────────────────
 const PROGRAM_ID = new PublicKey(
   process.env.NEXT_PUBLIC_PROGRAM_ID ||
-    "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+    "EawytSiCAZ6tKx6t1bVFmSb8Y7uTUbxMdydrokCiR71N"
 );
 const USDC_MINT = new PublicKey(
   process.env.NEXT_PUBLIC_USDC_MINT ||
@@ -106,7 +106,10 @@ export function useOceanSense() {
 
   const getMintConfigPda = useCallback(
     () =>
-      PublicKey.findProgramAddressSync([Buffer.from("mint_config")], PROGRAM_ID),
+      PublicKey.findProgramAddressSync(
+        [Buffer.from("mint_config"), USDC_MINT.toBuffer()],
+        PROGRAM_ID
+      ),
     []
   );
 

@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
-import { ArrowDownUp, Coins, ExternalLink, Info } from "lucide-react";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { ArrowDownUp, Coins, ExternalLink, Info, RefreshCw } from "lucide-react";
 import clsx from "clsx";
-
-const RATE = 3.8; // 1 USDC = 3.80 cPEN
 
 export default function CpenPage() {
   const { connected } = useWallet();
   const { cpenStats, loading, txStatus, mintCpen, redeemCpen } = useOceanSense();
+  const { rate, lastUpdated, fetching } = useExchangeRate();
 
   const [mode, setMode]       = useState<"mint" | "redeem">("mint");
   const [amount, setAmount]   = useState("");
@@ -18,8 +18,8 @@ export default function CpenPage() {
   const numAmount = parseFloat(amount) || 0;
   const outputAmount =
     mode === "mint"
-      ? (numAmount * RATE).toFixed(2)
-      : (numAmount / RATE).toFixed(6);
+      ? (numAmount * rate).toFixed(2)
+      : (numAmount / rate).toFixed(6);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,11 +124,24 @@ export default function CpenPage() {
             </div>
           </div>
 
-          {/* Tasa */}
+          {/* Tasa en vivo */}
           <div className="flex items-center justify-between text-xs text-slate-500">
-            <span>Tipo de cambio</span>
-            <span>1 USDC = {RATE} cPEN</span>
+            <span className="flex items-center gap-1.5">
+              Tipo de cambio
+              {fetching && <RefreshCw size={10} className="animate-spin text-slate-600" />}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-slate-300">1 USDC = {rate.toFixed(3)} cPEN</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-500/15 text-green-400 font-medium">
+                en vivo
+              </span>
+            </span>
           </div>
+          {lastUpdated && (
+            <p className="text-[10px] text-slate-600 text-right -mt-2">
+              USD/PEN · actualizado {lastUpdated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          )}
 
           {/* Fee aviso */}
           <div className="flex items-start gap-2 text-xs text-slate-500

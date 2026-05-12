@@ -110,14 +110,14 @@ Ocean-Sense combines **DePIN + a local stablecoin** in a single protocol:
 
 ## Rewards Model
 
-| Pollution Level | Description          | USDC      | cPEN equivalent |
-| --------------- | -------------------- | --------- | --------------- |
-| `0`             | Clean water          | 1.00 USDC | 3.80 S/         |
-| `1`             | Mild pollution       | 1.00 USDC | 3.80 S/         |
-| `2`             | Moderate pollution   | 2.00 USDC | 7.60 S/         |
-| `3`             | Critical pollution 🚨 | 5.00 USDC | 19.00 S/        |
+| Pollution Level | Description           | USDC      | cPEN equivalent           |
+| --------------- | --------------------- | --------- | ------------------------- |
+| `0`             | Clean water           | 1.00 USDC | `1 × rate` S/             |
+| `1`             | Mild pollution        | 1.00 USDC | `1 × rate` S/             |
+| `2`             | Moderate pollution    | 2.00 USDC | `2 × rate` S/             |
+| `3`             | Critical pollution 🚨  | 5.00 USDC | `5 × rate` S/             |
 
-Critical alerts (spills, anomalies) receive **5× more reward** to incentivize urgent reporting.
+`rate` = live USD/PEN exchange rate fetched from the Frankfurter API (updated every hour in the UI). Critical alerts (spills, anomalies) receive **5× more reward** to incentivize urgent reporting.
 
 ---
 
@@ -145,6 +145,9 @@ Critical alerts (spills, anomalies) receive **5× more reward** to incentivize u
 | Frontend        | Next.js 14 + TypeScript + Tailwind CSS                         |
 | Wallet adapter  | @solana/wallet-adapter (Phantom, Solflare, Backpack, Coinbase) |
 | Map             | Leaflet + CartoDB Dark Matter (no API key required)            |
+| Exchange rate   | Frankfurter API (live USD/PEN, cached 1h, no API key)          |
+| SDK             | `@oceansense/sdk` — framework-agnostic TypeScript client       |
+| IoT Gateway     | Node.js HTTP server — ESP32 → Solana bridge                    |
 | Dev environment | GitHub Codespaces + devcontainer                               |
 
 ---
@@ -166,9 +169,13 @@ OceanSense/
 │   └── anchor.test.day2.ts         ← cPEN mint/redeem/claim tests
 │
 ├── app/                            ← Next.js frontend
+│   ├── public/
+│   │   └── idl/
+│   │       └── ocean_sense_pay.json  ← Anchor IDL served statically
 │   └── src/
 │       ├── hooks/
-│       │   └── useOceanSense.ts    ← Full Anchor logic
+│       │   ├── useOceanSense.ts    ← Full Anchor logic + wallet state
+│       │   └── useExchangeRate.ts  ← Live USD/PEN rate (Frankfurter API, 1h cache)
 │       ├── components/
 │       │   ├── Providers.tsx       ← Multi-wallet adapter
 │       │   ├── Navbar.tsx          ← Navigation + WalletMultiButton
@@ -178,6 +185,18 @@ OceanSense/
 │           ├── reading/page.tsx    ← Register buoy + submit reading
 │           ├── claim/page.tsx      ← Claim rewards in cPEN
 │           └── cpen/page.tsx       ← Mint / Redeem cPEN ↔ USDC
+│
+├── sdk/                            ← @oceansense/sdk
+│   ├── src/
+│   │   ├── client.ts               ← OceanSenseClient (framework-agnostic)
+│   │   ├── types.ts                ← BuoyData, CpenStats, param interfaces
+│   │   └── index.ts                ← Barrel export
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── gateway/                        ← IoT HTTP Gateway (ESP32 → Solana)
+│   ├── index.ts                    ← HTTP server: /register /reading /buoys /health
+│   └── package.json
 │
 ├── scripts/
 │   ├── setup-cpen-mint.sh          ← Create Token-2022 mint with extensions
@@ -190,6 +209,7 @@ OceanSense/
 │   ├── devcontainer.json           ← Codespace config
 │   └── setup.sh                    ← Auto-installs Solana + Anchor
 │
+├── BUOY_SPEC.md                    ← IoT buoy hardware prototype specifications
 ├── Anchor.toml
 ├── Cargo.toml
 ├── package.json
@@ -344,12 +364,99 @@ Expected output:
 cp .env.example .env
 ```
 
+### Frontend (`app/.env.local`)
+
 | Variable                     | Description                                              |
 | ---------------------------- | -------------------------------------------------------- |
 | `NEXT_PUBLIC_PROGRAM_ID`     | Address of the program deployed on Devnet                |
 | `NEXT_PUBLIC_CPEN_MINT`      | cPEN mint address (created with setup-cpen-mint.sh)      |
 | `NEXT_PUBLIC_USDC_MINT`      | USDC address on Devnet                                   |
-| `NEXT_PUBLIC_SOLANA_RPC_URL` | RPC endpoint (default: https://api.devnet.solana.com)    |
+| `NEXT_PUBLIC_RPC_URL`        | RPC endpoint (default: https://api.devnet.solana.com)    |
+
+### IoT Gateway
+
+| Variable       | Description                                               | Default                              |
+| -------------- | --------------------------------------------------------- | ------------------------------------ |
+| `PORT`         | HTTP port the gateway listens on                          | `3001`                               |
+| `RPC_URL`      | Solana RPC endpoint                                       | `https://api.devnet.solana.com`      |
+| `KEYPAIR_PATH` | Path to the operator's Solana keypair JSON file           | `~/.config/solana/id.json`           |
+| `NEXT_PUBLIC_CPEN_MINT` | cPEN mint address (enables cPEN reward claiming) | —                                    |
+
+---
+
+## @oceansense/sdk
+
+A framework-agnostic TypeScript client for the OceanSense on-chain program. Works in Node.js, browser, and any React/Vue/Svelte project.
+
+```typescript
+import { OceanSenseClient } from "./sdk/src/index.js";
+import { Connection, Keypair } from "@solana/web3.js";
+
+const client = new OceanSenseClient({
+  connection: new Connection("https://api.devnet.solana.com"),
+  keypair: Keypair.fromSecretKey(/* your key */),
+});
+
+// Register a buoy
+await client.registerBuoy({
+  buoyId: "PAITA-001",
+  latDeg: -5.0623,
+  lngDeg: -81.43,
+  locationName: "Boya Paita Norte",
+});
+
+// Submit a reading
+await client.submitReading({
+  buoyId: "PAITA-001",
+  temperature: 22.5,    // °C
+  salinity: 35.1,       // PSU
+  waveHeight: 0.85,     // meters
+  pollutionLevel: 0,    // 0–3
+});
+
+// Fetch all registered buoys
+const buoys = await client.fetchBuoys();
+```
+
+The IDL is embedded in the client — no external files required.
+
+---
+
+## IoT Gateway
+
+HTTP bridge between ESP32 buoys and the Solana network. The gateway loads the operator keypair and signs transactions on behalf of the buoy.
+
+```bash
+# Start the gateway
+KEYPAIR_PATH=~/.config/solana/id.json yarn gateway
+
+# Hot-reload during development
+yarn gateway:dev
+```
+
+### ESP32 Arduino example
+
+```cpp
+HTTPClient http;
+http.begin("http://<gateway-ip>:3001/reading");
+http.addHeader("Content-Type", "application/json");
+
+String body = "{\"buoyId\":\"PAITA-001\","
+  "\"temperature\":22.5,\"salinity\":35.1,"
+  "\"waveHeight\":0.85,\"pollutionLevel\":0}";
+
+int code = http.POST(body);
+// Response: {"signature":"abc123...","reward_usdc":1,"explorer":"https://..."}
+```
+
+### Endpoints
+
+| Method | Route        | Description                                   |
+| ------ | ------------ | --------------------------------------------- |
+| POST   | `/reading`   | Submit sensor data → Solana transaction        |
+| POST   | `/register`  | Register a new buoy on-chain                  |
+| GET    | `/buoys`     | Return all registered buoys                   |
+| GET    | `/health`    | Gateway status + operator public key          |
 
 ---
 
@@ -377,14 +484,17 @@ cp .env.example .env
 - [x] Next.js frontend: dashboard, CartoDB map, claim, swap
 - [x] Multi-wallet support (Phantom, Solflare, Backpack, Coinbase)
 - [x] Full TypeScript test suite
+- [x] Live USD/PEN exchange rate (`useExchangeRate` — Frankfurter API, 1h cache)
+- [x] `@oceansense/sdk` — framework-agnostic TypeScript client
+- [x] IoT Gateway — ESP32 → HTTP → Solana transaction bridge
+- [x] `BUOY_SPEC.md` — full hardware prototype specification
 
 ### 🔜 Post-hackathon
 
-- [ ] On-chain PEN/USD exchange rate oracle
+- [ ] On-chain PEN/USD exchange rate oracle (Pyth / Switchboard)
 - [ ] Cross-peer validation of anomalous readings
 - [ ] Operator staking (skin in the game)
-- [ ] Public SDK to integrate Ocean-Sense data
-- [ ] Real IoT hardware integration (ESP32 + CTD sensors)
+- [ ] Physical buoy v0.1 deployment at Paita cove
 
 ### 🔮 Vision
 

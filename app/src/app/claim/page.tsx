@@ -2,17 +2,19 @@
 
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
-import { Coins, Waves, ExternalLink, TrendingUp } from "lucide-react";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { Coins, Waves, ExternalLink, TrendingUp, RefreshCw } from "lucide-react";
 import clsx from "clsx";
 
 export default function ClaimPage() {
   const { connected } = useWallet();
   const { buoys, loading, txStatus, claimRewardAsCpen } = useOceanSense();
+  const { rate, lastUpdated, fetching } = useExchangeRate();
 
   // Solo mostrar boyas del usuario conectado con saldo pendiente
   const myBuoys = buoys.filter((b) => b.unclaimedUsdc > 0);
   const totalPending = myBuoys.reduce((s, b) => s + b.unclaimedUsdc, 0);
-  const totalCpen    = totalPending * 3.8;
+  const totalCpen    = totalPending * rate;
 
   if (!connected) {
     return (
@@ -27,8 +29,14 @@ export default function ClaimPage() {
     <div className="max-w-2xl mx-auto px-4 pt-24 pb-12 space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Recompensas</h1>
-        <p className="text-slate-400 text-sm mt-1">
-          Cobra tus datos oceánicos en cPEN (1 USDC = 3.80 S/)
+        <p className="text-slate-400 text-sm mt-1 flex items-center gap-2">
+          Cobra tus datos oceánicos en cPEN
+          {fetching
+            ? <RefreshCw size={12} className="animate-spin text-slate-600" />
+            : <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/15 text-green-400 font-medium">
+                1 USDC = {rate.toFixed(3)} S/
+              </span>
+          }
         </p>
       </div>
 
@@ -50,7 +58,14 @@ export default function ClaimPage() {
           <p className="text-3xl font-semibold text-yellow-400">
             S/ {totalCpen.toFixed(2)}
           </p>
-          <p className="text-xs text-slate-500 mt-1">al tipo 1 USDC = 3.80 cPEN</p>
+          <p className="text-xs text-slate-500 mt-1">
+            al tipo 1 USDC = {rate.toFixed(3)} cPEN
+            {lastUpdated && (
+              <span className="ml-1 text-slate-600">
+                · {lastUpdated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
+          </p>
         </div>
       </div>
 
@@ -95,7 +110,7 @@ export default function ClaimPage() {
                   <span className="text-yellow-400 font-medium">
                     ${buoy.unclaimedUsdc.toFixed(4)} USDC
                     {" → "}
-                    S/ {(buoy.unclaimedUsdc * 3.8).toFixed(2)} cPEN
+                    S/ {(buoy.unclaimedUsdc * rate).toFixed(2)} cPEN
                   </span>
                 </div>
               </div>
@@ -163,7 +178,7 @@ export default function ClaimPage() {
         <p>• Stablecoin pegged 1:1 al Sol Peruano (PEN)</p>
         <p>• Emitida sobre Solana con Token-2022 (Transfer Fee 0.5%)</p>
         <p>• Colateralizada con USDC · Redimible en todo momento</p>
-        <p>• 1 USDC = 3.80 cPEN (tipo de cambio fijo Devnet)</p>
+        <p>• 1 USDC = {rate.toFixed(3)} cPEN (tipo de cambio USD/PEN en vivo)</p>
       </div>
     </div>
   );
