@@ -3,65 +3,101 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-import { Coins, Waves, ExternalLink, TrendingUp, RefreshCw } from "lucide-react";
-import clsx from "clsx";
+import { Coins, ExternalLink, TrendingUp, RefreshCw } from "lucide-react";
 
 export default function ClaimPage() {
   const { connected } = useWallet();
   const { buoys, loading, txStatus, claimRewardAsCpen } = useOceanSense();
   const { rate, lastUpdated, fetching } = useExchangeRate();
 
-  // Solo mostrar boyas del usuario conectado con saldo pendiente
   const myBuoys = buoys.filter((b) => b.unclaimedUsdc > 0);
   const totalPending = myBuoys.reduce((s, b) => s + b.unclaimedUsdc, 0);
   const totalCpen    = totalPending * rate;
 
   if (!connected) {
     return (
-      <div className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-4">
-        <Coins size={48} className="text-slate-600" />
-        <p className="text-slate-400">Conecta tu wallet para ver tus recompensas.</p>
+      <div
+        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-screen"
+        style={{ background: "var(--background)" }}
+      >
+        <Coins size={40} style={{ color: "var(--muted-foreground)" }} />
+        <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
+          Conecta tu wallet para ver tus recompensas.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-24 pb-12 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Recompensas</h1>
-        <p className="text-slate-400 text-sm mt-1 flex items-center gap-2">
+    <div
+      className="max-w-2xl mx-auto px-6 pt-24 pb-16 space-y-8"
+      style={{ background: "var(--background)", minHeight: "100vh" }}
+    >
+      {/* Page header */}
+      <div className="pt-6">
+        <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
+          /recompensas
+        </p>
+        <div className="flex items-end justify-between gap-4">
+          <h1
+            className="t-display-sm"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
+          >
+            Recompensas
+          </h1>
+          {fetching ? (
+            <RefreshCw size={14} className="animate-spin mb-2" style={{ color: "var(--muted-foreground)" }} />
+          ) : (
+            <span
+              className="mb-2 border px-3 py-1 text-xs uppercase tracking-[0.18em]"
+              style={{
+                fontFamily: "var(--font-mono)",
+                color: "var(--accent)",
+                borderColor: "var(--accent)",
+              }}
+            >
+              1 USDC = {rate.toFixed(3)} S/
+            </span>
+          )}
+        </div>
+        <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
           Cobra tus datos oceánicos en cPEN
-          {fetching
-            ? <RefreshCw size={12} className="animate-spin text-slate-600" />
-            : <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/15 text-green-400 font-medium">
-                1 USDC = {rate.toFixed(3)} S/
-              </span>
-          }
         </p>
       </div>
 
-      {/* Resumen total */}
-      <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-5 grid grid-cols-2 gap-6">
-        <div>
-          <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+      {/* Summary strip */}
+      <div
+        className="grid grid-cols-2 border"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <div className="p-6 border-r" style={{ borderColor: "var(--border)" }}>
+          <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
             Total pendiente
           </p>
-          <p className="text-3xl font-semibold text-cyan-400">
+          <p
+            className="t-display-xs italic"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--accent)" }}
+          >
             ${totalPending.toFixed(4)}
           </p>
-          <p className="text-xs text-slate-500 mt-1">USDC acumulado</p>
+          <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
+            USDC acumulado
+          </p>
         </div>
-        <div>
-          <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+        <div className="p-6">
+          <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
             Recibirás en cPEN
           </p>
-          <p className="text-3xl font-semibold text-yellow-400">
+          <p
+            className="t-display-xs italic"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--sand)" }}
+          >
             S/ {totalCpen.toFixed(2)}
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
             al tipo 1 USDC = {rate.toFixed(3)} cPEN
             {lastUpdated && (
-              <span className="ml-1 text-slate-600">
+              <span className="ml-1" style={{ color: "var(--muted-foreground)", opacity: 0.6 }}>
                 · {lastUpdated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
@@ -69,76 +105,117 @@ export default function ClaimPage() {
         </div>
       </div>
 
-      {/* Boyas con saldo */}
+      {/* Buoys list */}
       {myBuoys.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 p-10 text-center">
-          <TrendingUp size={36} className="mx-auto text-slate-600 mb-3" />
-          <p className="text-slate-400">Sin recompensas pendientes.</p>
-          <p className="text-slate-500 text-sm mt-1">
+        <div
+          className="border p-16 text-center"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <TrendingUp size={32} className="mx-auto mb-4" style={{ color: "var(--muted-foreground)" }} />
+          <p className="t-eyebrow mb-2" style={{ color: "var(--muted-foreground)" }}>
+            Sin recompensas pendientes
+          </p>
+          <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)", opacity: 0.7 }}>
             Envía lecturas para acumular USDC.
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div>
+          {/* Column header */}
+          <div
+            className="grid grid-cols-12 gap-4 py-3 border-t border-b t-mono-xs"
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+          >
+            <span className="col-span-3">Buoy ID</span>
+            <span className="col-span-3">Location</span>
+            <span className="col-span-2">Readings</span>
+            <span className="col-span-2">Pending</span>
+            <span className="col-span-2 text-right">Action</span>
+          </div>
+
+          {/* Rows */}
           {myBuoys.map((buoy) => (
             <div
               key={buoy.publicKey}
-              className="rounded-xl border border-slate-800 bg-slate-900 p-4
-                         flex items-center justify-between gap-4"
+              className="grid grid-cols-12 gap-4 py-4 border-b items-center"
+              style={{ borderColor: "var(--border)" }}
             >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-mono text-cyan-400 text-sm font-medium">
-                    {buoy.buoyId}
-                  </span>
-                  <span
-                    className={clsx(
-                      "text-xs px-2 py-0.5 rounded-full",
-                      buoy.isActive
-                        ? "bg-green-500/15 text-green-400"
-                        : "bg-slate-700 text-slate-400"
-                    )}
-                  >
-                    {buoy.isActive ? "Activa" : "Inactiva"}
-                  </span>
-                </div>
-                <p className="text-slate-400 text-xs truncate">{buoy.locationName}</p>
-                <div className="flex items-center gap-4 mt-2 text-xs">
-                  <span className="text-slate-500">
-                    {buoy.totalReadings} lecturas
-                  </span>
-                  <span className="text-yellow-400 font-medium">
-                    ${buoy.unclaimedUsdc.toFixed(4)} USDC
-                    {" → "}
-                    S/ {(buoy.unclaimedUsdc * rate).toFixed(2)} cPEN
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => claimRewardAsCpen(buoy.buoyId)}
-                disabled={loading}
-                className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg
-                           bg-yellow-500 hover:bg-yellow-400 text-black text-sm font-semibold
-                           transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              <span
+                className="col-span-3 text-sm"
+                style={{ fontFamily: "var(--font-mono)", color: "var(--accent)" }}
               >
-                <Coins size={14} />
-                Cobrar
-              </button>
+                {buoy.buoyId}
+              </span>
+              <div className="col-span-3">
+                <span className="text-sm block truncate" style={{ color: "var(--foreground)" }}>
+                  {buoy.locationName}
+                </span>
+                <span
+                  className="border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.18em] mt-1 inline-block"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    borderColor: buoy.isActive ? "var(--accent)" : "var(--border)",
+                    color: buoy.isActive ? "var(--accent)" : "var(--muted-foreground)",
+                  }}
+                >
+                  {buoy.isActive ? "Activa" : "Inactiva"}
+                </span>
+              </div>
+              <span
+                className="col-span-2 text-sm"
+                style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
+              >
+                {buoy.totalReadings}
+              </span>
+              <div className="col-span-2">
+                <p
+                  className="text-sm"
+                  style={{ fontFamily: "var(--font-mono)", color: "var(--sand)" }}
+                >
+                  ${buoy.unclaimedUsdc.toFixed(4)}
+                </p>
+                <p className="text-xs" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
+                  S/ {(buoy.unclaimedUsdc * rate).toFixed(2)}
+                </p>
+              </div>
+              <div className="col-span-2 flex justify-end">
+                <button
+                  onClick={() => claimRewardAsCpen(buoy.buoyId)}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-[0.15em] transition-colors disabled:opacity-50"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    background: "var(--accent)",
+                    color: "var(--accent-foreground)",
+                  }}
+                >
+                  <Coins size={12} />
+                  Cobrar
+                </button>
+              </div>
             </div>
           ))}
 
-          {/* Botón claim all */}
+          {/* Claim all */}
           {myBuoys.length > 1 && (
             <button
-              onClick={() =>
-                myBuoys.forEach((b) => claimRewardAsCpen(b.buoyId))
-              }
+              onClick={async () => {
+                for (const b of myBuoys) await claimRewardAsCpen(b.buoyId);
+              }}
               disabled={loading}
-              className="w-full py-3 rounded-xl border border-yellow-500/40
-                         bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20
-                         font-medium text-sm transition-colors
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 mt-4 border text-xs uppercase tracking-[0.18em] transition-colors disabled:opacity-50"
+              style={{
+                fontFamily: "var(--font-mono)",
+                borderColor: "var(--sand)",
+                color: "var(--sand)",
+                background: "transparent",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(212,184,122,0.08)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+              }}
             >
               {loading ? "Procesando..." : `Cobrar todo — S/ ${totalCpen.toFixed(2)} cPEN`}
             </button>
@@ -149,14 +226,25 @@ export default function ClaimPage() {
       {/* Status tx */}
       {txStatus && (
         <div
-          className={clsx(
-            "rounded-lg px-4 py-3 text-sm font-mono flex items-center justify-between",
-            txStatus.startsWith("✅")
-              ? "bg-green-500/10 text-green-400 border border-green-500/20"
+          className="px-4 py-3 text-sm border flex items-center justify-between"
+          style={{
+            fontFamily: "var(--font-mono)",
+            background: txStatus.startsWith("✅")
+              ? "rgba(94,196,176,0.08)"
               : txStatus.startsWith("❌")
-              ? "bg-red-500/10 text-red-400 border border-red-500/20"
-              : "bg-slate-800 text-slate-300"
-          )}
+              ? "rgba(194,80,58,0.08)"
+              : "var(--surface)",
+            borderColor: txStatus.startsWith("✅")
+              ? "var(--accent)"
+              : txStatus.startsWith("❌")
+              ? "var(--alert)"
+              : "var(--border)",
+            color: txStatus.startsWith("✅")
+              ? "var(--primary)"
+              : txStatus.startsWith("❌")
+              ? "var(--alert)"
+              : "var(--foreground)",
+          }}
         >
           <span>{txStatus}</span>
           {txStatus.startsWith("✅") && (
@@ -166,19 +254,37 @@ export default function ClaimPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs hover:underline"
             >
-              Ver en Explorer <ExternalLink size={12} />
+              Ver en Explorer <ExternalLink size={11} />
             </a>
           )}
         </div>
       )}
 
-      {/* Info cPEN */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-xs text-slate-500 space-y-1">
-        <p className="text-slate-400 font-medium text-sm mb-2">¿Qué es cPEN?</p>
-        <p>• Stablecoin pegged 1:1 al Sol Peruano (PEN)</p>
-        <p>• Emitida sobre Solana con Token-2022 (Transfer Fee 0.5%)</p>
-        <p>• Colateralizada con USDC · Redimible en todo momento</p>
-        <p>• 1 USDC = {rate.toFixed(3)} cPEN (tipo de cambio USD/PEN en vivo)</p>
+      {/* cPEN info */}
+      <div
+        className="border p-5 space-y-2"
+        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+      >
+        <p
+          className="t-eyebrow mb-3"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          ¿Qué es cPEN?
+        </p>
+        {[
+          "Stablecoin pegged 1:1 al Sol Peruano (PEN)",
+          "Emitida sobre Solana con Token-2022 (Transfer Fee 0.5%)",
+          "Colateralizada con USDC · Redimible en todo momento",
+          `1 USDC = ${rate.toFixed(3)} cPEN (tipo de cambio USD/PEN en vivo)`,
+        ].map((line, i) => (
+          <p
+            key={i}
+            className="text-xs leading-relaxed"
+            style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
+          >
+            — {line}
+          </p>
+        ))}
       </div>
     </div>
   );

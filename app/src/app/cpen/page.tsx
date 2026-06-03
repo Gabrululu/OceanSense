@@ -12,8 +12,8 @@ export default function CpenPage() {
   const { cpenStats, loading, txStatus, mintCpen, redeemCpen } = useOceanSense();
   const { rate, lastUpdated, fetching } = useExchangeRate();
 
-  const [mode, setMode]       = useState<"mint" | "redeem">("mint");
-  const [amount, setAmount]   = useState("");
+  const [mode, setMode]     = useState<"mint" | "redeem">("mint");
+  const [amount, setAmount] = useState("");
 
   const numAmount = parseFloat(amount) || 0;
   const outputAmount =
@@ -31,58 +31,105 @@ export default function CpenPage() {
 
   if (!connected) {
     return (
-      <div className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-4">
-        <Coins size={48} className="text-slate-600" />
-        <p className="text-slate-400">Conecta tu wallet para usar cPEN.</p>
+      <div
+        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-screen"
+        style={{ background: "var(--background)" }}
+      >
+        <Coins size={40} style={{ color: "var(--muted-foreground)" }} />
+        <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
+          Conecta tu wallet para usar cPEN.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-24 pb-12 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Token cPEN</h1>
-        <p className="text-slate-400 text-sm mt-1">
+    <div
+      className="max-w-lg mx-auto px-6 pt-24 pb-16 space-y-8"
+      style={{ background: "var(--background)", minHeight: "100vh" }}
+    >
+      {/* Page header */}
+      <div className="pt-6">
+        <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
+          / token cpen
+        </p>
+        <h1
+          className="t-display-sm"
+          style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
+        >
+          Token cPEN
+        </h1>
+        <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
           Convierte entre USDC y cPEN (Sol Peruano digital)
         </p>
       </div>
 
-      {/* Balances */}
-      <div className="grid grid-cols-2 gap-4">
-        <BalanceCard
-          label="USDC"
-          value={cpenStats ? cpenStats.usdcBalance.toFixed(2) : "—"}
-          sub="Devnet"
-          color="text-blue-400"
-        />
-        <BalanceCard
-          label="cPEN"
-          value={cpenStats ? cpenStats.cpenBalance.toFixed(2) : "—"}
-          sub="1 cPEN = 1 S/"
-          color="text-yellow-400"
-        />
+      {/* Balances — spec-table style */}
+      <div
+        className="grid grid-cols-2 border"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <div className="p-5 border-r" style={{ borderColor: "var(--border)" }}>
+          <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
+            USDC
+          </p>
+          <p
+            className="t-display-xs italic"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--primary)" }}
+          >
+            {cpenStats ? cpenStats.usdcBalance.toFixed(2) : "—"}
+          </p>
+          <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
+            Devnet
+          </p>
+        </div>
+        <div className="p-5">
+          <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
+            cPEN
+          </p>
+          <p
+            className="t-display-xs italic"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--sand)" }}
+          >
+            {cpenStats ? cpenStats.cpenBalance.toFixed(2) : "—"}
+          </p>
+          <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
+            1 cPEN = 1 S/
+          </p>
+        </div>
       </div>
 
-      {/* Toggle mint/redeem */}
-      <div className="flex rounded-lg bg-slate-900 border border-slate-800 p-1 gap-1">
+      {/* Mode toggle */}
+      <div
+        className="flex border"
+        style={{ borderColor: "var(--border)" }}
+      >
         <ModeButton active={mode === "mint"} onClick={() => setMode("mint")}>
           USDC → cPEN
         </ModeButton>
-        <ModeButton active={mode === "redeem"} onClick={() => setMode("redeem")}>
+        <ModeButton active={mode === "redeem"} onClick={() => setMode("redeem")} borderLeft>
           cPEN → USDC
         </ModeButton>
       </div>
 
-      {/* Formulario */}
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
-
+      {/* Exchange form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div
+          className="border p-5 space-y-5"
+          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+        >
           {/* Input */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+          <div className="space-y-2">
+            <label
+              className="block text-xs uppercase tracking-[0.18em]"
+              style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
+            >
               {mode === "mint" ? "Depositas (USDC)" : "Quemas (cPEN)"}
             </label>
-            <div className="flex items-center gap-3 rounded-lg bg-slate-800 px-4 py-3">
+            <div
+              className="flex items-center gap-3 px-4 py-3 border"
+              style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}
+            >
               <input
                 type="number"
                 step="0.01"
@@ -90,64 +137,104 @@ export default function CpenPage() {
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="flex-1 bg-transparent text-xl font-semibold
-                           text-slate-100 outline-none placeholder:text-slate-600"
+                className="flex-1 bg-transparent text-xl outline-none placeholder:opacity-30"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 380,
+                  color: "var(--foreground)",
+                }}
                 required
               />
-              <span className="text-slate-400 font-medium text-sm">
+              <span
+                className="t-eyebrow shrink-0"
+                style={{ color: "var(--muted-foreground)" }}
+              >
                 {mode === "mint" ? "USDC" : "cPEN"}
               </span>
             </div>
           </div>
 
-          {/* Flecha conversión */}
+          {/* Arrow */}
           <div className="flex items-center justify-center">
-            <ArrowDownUp size={16} className="text-slate-600" />
+            <ArrowDownUp size={15} style={{ color: "var(--muted-foreground)" }} />
           </div>
 
           {/* Output */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+          <div className="space-y-2">
+            <label
+              className="block text-xs uppercase tracking-[0.18em]"
+              style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
+            >
               {mode === "mint" ? "Recibes (cPEN)" : "Recibes (USDC)"}
             </label>
-            <div className="flex items-center gap-3 rounded-lg bg-slate-800/50 px-4 py-3
-                            border border-slate-700/50">
-              <span className={clsx(
-                "flex-1 text-xl font-semibold",
-                numAmount > 0 ? "text-yellow-400" : "text-slate-600"
-              )}>
+            <div
+              className="flex items-center gap-3 px-4 py-3 border"
+              style={{ borderColor: "var(--border)", background: "transparent" }}
+            >
+              <span
+                className="flex-1 text-xl"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 380,
+                  fontStyle: "italic",
+                  color: numAmount > 0 ? "var(--sand)" : "var(--muted-foreground)",
+                }}
+              >
                 {numAmount > 0 ? outputAmount : "0.00"}
               </span>
-              <span className="text-slate-400 font-medium text-sm">
+              <span className="t-eyebrow shrink-0" style={{ color: "var(--muted-foreground)" }}>
                 {mode === "mint" ? "cPEN" : "USDC"}
               </span>
             </div>
           </div>
 
-          {/* Tasa en vivo */}
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <span className="flex items-center gap-1.5">
+          {/* Live rate */}
+          <div
+            className="flex items-center justify-between text-xs border-t pt-4"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <span
+              className="flex items-center gap-1.5 t-mono-xs"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               Tipo de cambio
-              {fetching && <RefreshCw size={10} className="animate-spin text-slate-600" />}
+              {fetching && <RefreshCw size={9} className="animate-spin" />}
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="text-slate-300">1 USDC = {rate.toFixed(3)} cPEN</span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-500/15 text-green-400 font-medium">
+            <span className="flex items-center gap-2">
+              <span
+                className="t-mono-xs"
+                style={{ color: "var(--foreground)" }}
+              >
+                1 USDC = {rate.toFixed(3)} cPEN
+              </span>
+              <span
+                className="border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.15em]"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  borderColor: "var(--accent)",
+                  color: "var(--accent)",
+                }}
+              >
                 en vivo
               </span>
             </span>
           </div>
           {lastUpdated && (
-            <p className="text-[10px] text-slate-600 text-right -mt-2">
-              USD/PEN · actualizado {lastUpdated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
+            <p
+              className="t-mono-xs text-right -mt-3"
+              style={{ color: "var(--muted-foreground)", opacity: 0.6 }}
+            >
+              USD/PEN · {lastUpdated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
             </p>
           )}
 
-          {/* Fee aviso */}
-          <div className="flex items-start gap-2 text-xs text-slate-500
-                          bg-slate-800/50 rounded-lg px-3 py-2">
-            <Info size={12} className="mt-0.5 shrink-0 text-slate-600" />
-            <span>
+          {/* Fee notice */}
+          <div
+            className="flex items-start gap-2 text-xs px-3 py-2.5 border"
+            style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}
+          >
+            <Info size={11} className="mt-0.5 shrink-0" style={{ color: "var(--muted-foreground)" }} />
+            <span style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)", fontSize: "11px" }}>
               Las transferencias de cPEN incluyen un fee de 0.5%
               (Token-2022 Transfer Fee) que va al protocolo Ocean-Sense.
             </span>
@@ -157,14 +244,12 @@ export default function CpenPage() {
         <button
           type="submit"
           disabled={loading || !numAmount || numAmount <= 0}
-          className={clsx(
-            "w-full py-3 rounded-xl font-semibold text-sm transition-colors",
-            "flex items-center justify-center gap-2",
-            mode === "mint"
-              ? "bg-yellow-500 hover:bg-yellow-400 text-black"
-              : "bg-blue-600 hover:bg-blue-500 text-white",
-            "disabled:opacity-50 disabled:cursor-not-allowed"
-          )}
+          className="w-full py-3 text-xs uppercase tracking-[0.18em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          style={{
+            fontFamily: "var(--font-mono)",
+            background: mode === "mint" ? "var(--accent)" : "var(--primary)",
+            color: "var(--accent-foreground)",
+          }}
         >
           {loading
             ? "Procesando..."
@@ -176,14 +261,27 @@ export default function CpenPage() {
 
       {/* Status */}
       {txStatus && (
-        <div className={clsx(
-          "rounded-lg px-4 py-3 text-sm font-mono flex items-center justify-between",
-          txStatus.startsWith("✅")
-            ? "bg-green-500/10 text-green-400 border border-green-500/20"
-            : txStatus.startsWith("❌")
-            ? "bg-red-500/10 text-red-400 border border-red-500/20"
-            : "bg-slate-800 text-slate-300"
-        )}>
+        <div
+          className="px-4 py-3 text-sm border flex items-center justify-between"
+          style={{
+            fontFamily: "var(--font-mono)",
+            background: txStatus.startsWith("✅")
+              ? "rgba(94,196,176,0.08)"
+              : txStatus.startsWith("❌")
+              ? "rgba(194,80,58,0.08)"
+              : "var(--surface)",
+            borderColor: txStatus.startsWith("✅")
+              ? "var(--accent)"
+              : txStatus.startsWith("❌")
+              ? "var(--alert)"
+              : "var(--border)",
+            color: txStatus.startsWith("✅")
+              ? "var(--primary)"
+              : txStatus.startsWith("❌")
+              ? "var(--alert)"
+              : "var(--foreground)",
+          }}
+        >
           <span>{txStatus}</span>
           {txStatus.startsWith("✅") && (
             <a
@@ -192,77 +290,86 @@ export default function CpenPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs hover:underline"
             >
-              Explorer <ExternalLink size={12} />
+              Explorer <ExternalLink size={11} />
             </a>
           )}
         </div>
       )}
 
-      {/* Stats del protocolo */}
+      {/* Protocol stats — spec table */}
       {cpenStats && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 space-y-2 text-sm">
-          <p className="text-slate-400 font-medium text-xs uppercase tracking-wider mb-3">
+        <div
+          className="border"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <div
+            className="px-5 py-3 border-b t-eyebrow"
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+          >
             Stats del protocolo
-          </p>
-          <StatRow label="Total minted" value={`S/ ${cpenStats.totalMinted.toFixed(2)}`} />
-          <StatRow label="Total redeemed" value={`S/ ${cpenStats.totalRedeemed.toFixed(2)}`} />
-          <StatRow
-            label="En circulación"
-            value={`S/ ${(cpenStats.totalMinted - cpenStats.totalRedeemed).toFixed(2)}`}
-            highlight
-          />
+          </div>
+          {[
+            { label: "Total minted", value: `S/ ${cpenStats.totalMinted.toFixed(2)}`, highlight: false },
+            { label: "Total redeemed", value: `S/ ${cpenStats.totalRedeemed.toFixed(2)}`, highlight: false },
+            {
+              label: "En circulación",
+              value: `S/ ${(cpenStats.totalMinted - cpenStats.totalRedeemed).toFixed(2)}`,
+              highlight: true,
+            },
+          ].map((row) => (
+            <div
+              key={row.label}
+              className="flex justify-between items-center px-5 py-3.5 border-t"
+              style={{ borderColor: "var(--border)" }}
+            >
+              <span
+                className="t-mono-xs"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                {row.label}
+              </span>
+              <span
+                className="text-sm"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  color: row.highlight ? "var(--sand)" : "var(--foreground)",
+                  fontWeight: row.highlight ? 500 : 400,
+                }}
+              >
+                {row.value}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-function BalanceCard({
-  label, value, sub, color,
-}: {
-  label: string; value: string; sub: string; color: string;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className={clsx("text-2xl font-semibold", color)}>{value}</p>
-      <p className="text-xs text-slate-600 mt-0.5">{sub}</p>
-    </div>
-  );
-}
-
 function ModeButton({
-  active, onClick, children,
+  active,
+  onClick,
+  children,
+  borderLeft,
 }: {
-  active: boolean; onClick: () => void; children: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  borderLeft?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={clsx(
-        "flex-1 py-2 rounded-md text-sm font-medium transition-colors",
-        active
-          ? "bg-cyan-600 text-white"
-          : "text-slate-400 hover:text-slate-200"
-      )}
+      className="flex-1 py-3 text-xs uppercase tracking-[0.18em] transition-colors"
+      style={{
+        fontFamily: "var(--font-mono)",
+        background: active ? "var(--accent)" : "transparent",
+        color: active ? "var(--accent-foreground)" : "var(--muted-foreground)",
+        borderLeft: borderLeft ? `1px solid var(--border)` : undefined,
+      }}
     >
       {children}
     </button>
-  );
-}
-
-function StatRow({
-  label, value, highlight,
-}: {
-  label: string; value: string; highlight?: boolean;
-}) {
-  return (
-    <div className="flex justify-between items-center">
-      <span className="text-slate-500 text-xs">{label}</span>
-      <span className={clsx("text-xs font-medium", highlight ? "text-yellow-400" : "text-slate-300")}>
-        {value}
-      </span>
-    </div>
   );
 }

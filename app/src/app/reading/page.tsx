@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-import { Waves, Send, PlusCircle, AlertTriangle } from "lucide-react";
+import { Waves, Send, PlusCircle } from "lucide-react";
 import clsx from "clsx";
 
 const POLLUTION_LABELS = [
-  { value: 0, label: "Limpio",     color: "text-green-400",  bg: "bg-green-500/10" },
-  { value: 1, label: "Leve",       color: "text-yellow-400", bg: "bg-yellow-500/10" },
-  { value: 2, label: "Moderado",   color: "text-orange-400", bg: "bg-orange-500/10" },
-  { value: 3, label: "Crítico 🚨", color: "text-red-400",    bg: "bg-red-500/10" },
+  { value: 0, label: "Limpio",     active: "var(--primary)",  border: "var(--primary)" },
+  { value: 1, label: "Leve",       active: "var(--sand)",     border: "var(--sand)" },
+  { value: 2, label: "Moderado",   active: "var(--sand)",     border: "var(--sand)" },
+  { value: 3, label: "Crítico 🚨", active: "var(--alert)",    border: "var(--alert)" },
 ];
 
 export default function ReadingPage() {
@@ -59,34 +59,55 @@ export default function ReadingPage() {
 
   if (!connected) {
     return (
-      <div className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-4">
-        <Waves size={48} className="text-slate-600" />
-        <p className="text-slate-400">Conecta tu wallet para enviar lecturas.</p>
+      <div
+        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-screen"
+        style={{ background: "var(--background)" }}
+      >
+        <Waves size={40} style={{ color: "var(--muted-foreground)" }} />
+        <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
+          Conecta tu wallet para enviar lecturas.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-24 pb-12 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Boya IoT</h1>
-        <p className="text-slate-400 text-sm mt-1">
+    <div
+      className="max-w-2xl mx-auto px-6 pt-24 pb-16 space-y-8"
+      style={{ background: "var(--background)", minHeight: "100vh" }}
+    >
+      {/* Page header */}
+      <div className="pt-6">
+        <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
+          / boya iot
+        </p>
+        <h1
+          className="t-display-sm"
+          style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
+        >
+          Boya IoT
+        </h1>
+        <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
           Registra una boya o envía datos oceánicos.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex rounded-lg bg-slate-900 border border-slate-800 p-1 gap-1">
+      <div
+        className="flex border"
+        style={{ borderColor: "var(--border)" }}
+      >
         {(["reading", "register"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={clsx(
-              "flex-1 py-2 rounded-md text-sm font-medium transition-colors",
-              tab === t
-                ? "bg-cyan-600 text-white"
-                : "text-slate-400 hover:text-slate-200"
-            )}
+            className="flex-1 py-3 text-xs font-medium uppercase tracking-[0.18em] transition-colors"
+            style={{
+              fontFamily: "var(--font-mono)",
+              background: tab === t ? "var(--accent)" : "transparent",
+              color: tab === t ? "var(--accent-foreground)" : "var(--muted-foreground)",
+              borderRight: t === "reading" ? `1px solid var(--border)` : undefined,
+            }}
           >
             {t === "reading" ? "Enviar lectura" : "Registrar boya"}
           </button>
@@ -95,9 +116,8 @@ export default function ReadingPage() {
 
       {/* Form: enviar lectura */}
       {tab === "reading" && (
-        <form onSubmit={handleReading} className="space-y-4">
-          <Card>
-            {/* Seleccionar boya */}
+        <form onSubmit={handleReading} className="space-y-6">
+          <Panel>
             <Field label="Boya">
               {buoys.length > 0 ? (
                 <select
@@ -113,7 +133,7 @@ export default function ReadingPage() {
                   ))}
                 </select>
               ) : (
-                <p className="text-slate-500 text-sm">
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
                   No hay boyas registradas. Crea una primero.
                 </p>
               )}
@@ -153,12 +173,13 @@ export default function ReadingPage() {
                     key={p.value}
                     type="button"
                     onClick={() => setReading({ ...reading, pollutionLevel: p.value })}
-                    className={clsx(
-                      "py-2 px-3 rounded-lg border text-sm font-medium transition-all",
-                      reading.pollutionLevel === p.value
-                        ? `${p.bg} ${p.color} border-current`
-                        : "bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-600"
-                    )}
+                    className="py-2.5 px-2 text-xs uppercase tracking-[0.12em] transition-all border"
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      background: reading.pollutionLevel === p.value ? "transparent" : "transparent",
+                      borderColor: reading.pollutionLevel === p.value ? p.border : "var(--border)",
+                      color: reading.pollutionLevel === p.value ? p.active : "var(--muted-foreground)",
+                    }}
                   >
                     {p.label}
                   </button>
@@ -166,10 +187,15 @@ export default function ReadingPage() {
               </div>
             </Field>
 
-            {/* Preview de recompensa */}
-            <div className="rounded-lg bg-slate-800/50 px-4 py-3 text-sm flex items-center justify-between">
-              <span className="text-slate-400">Recompensa estimada:</span>
-              <span className="font-semibold text-yellow-400">
+            {/* Reward preview */}
+            <div
+              className="flex items-center justify-between px-4 py-3 border text-sm"
+              style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}
+            >
+              <span style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.18em" }}>
+                Recompensa estimada
+              </span>
+              <span style={{ fontFamily: "var(--font-mono)", color: "var(--sand)", fontWeight: 500 }}>
                 {reading.pollutionLevel === 3
                   ? "5.00 USDC"
                   : reading.pollutionLevel === 2
@@ -181,9 +207,9 @@ export default function ReadingPage() {
                 ).toFixed(2)} cPEN
               </span>
             </div>
-          </Card>
+          </Panel>
 
-          <SubmitButton loading={loading} icon={<Send size={16} />}>
+          <SubmitButton loading={loading} icon={<Send size={14} />}>
             Enviar lectura
           </SubmitButton>
         </form>
@@ -191,8 +217,8 @@ export default function ReadingPage() {
 
       {/* Form: registrar boya */}
       {tab === "register" && (
-        <form onSubmit={handleRegister} className="space-y-4">
-          <Card>
+        <form onSubmit={handleRegister} className="space-y-6">
+          <Panel>
             <Field label="ID de la boya">
               <input
                 type="text" className="input-base" placeholder="ej: PAITA-001"
@@ -231,9 +257,9 @@ export default function ReadingPage() {
                 />
               </Field>
             </div>
-          </Card>
+          </Panel>
 
-          <SubmitButton loading={loading} icon={<PlusCircle size={16} />}>
+          <SubmitButton loading={loading} icon={<PlusCircle size={14} />}>
             Registrar boya
           </SubmitButton>
         </form>
@@ -241,14 +267,27 @@ export default function ReadingPage() {
 
       {/* Status */}
       {txStatus && (
-        <div className={clsx(
-          "rounded-lg px-4 py-3 text-sm font-mono",
-          txStatus.startsWith("✅")
-            ? "bg-green-500/10 text-green-400 border border-green-500/20"
-            : txStatus.startsWith("❌")
-            ? "bg-red-500/10 text-red-400 border border-red-500/20"
-            : "bg-slate-800 text-slate-300"
-        )}>
+        <div
+          className="px-4 py-3 text-sm border"
+          style={{
+            fontFamily: "var(--font-mono)",
+            background: txStatus.startsWith("✅")
+              ? "rgba(94,196,176,0.08)"
+              : txStatus.startsWith("❌")
+              ? "rgba(194,80,58,0.08)"
+              : "var(--surface)",
+            borderColor: txStatus.startsWith("✅")
+              ? "var(--accent)"
+              : txStatus.startsWith("❌")
+              ? "var(--alert)"
+              : "var(--border)",
+            color: txStatus.startsWith("✅")
+              ? "var(--primary)"
+              : txStatus.startsWith("❌")
+              ? "var(--alert)"
+              : "var(--foreground)",
+          }}
+        >
           {txStatus}
         </div>
       )}
@@ -256,10 +295,16 @@ export default function ReadingPage() {
   );
 }
 
-// ── Sub-componentes ───────────────────────────────────────
-function Card({ children }: { children: React.ReactNode }) {
+/* ── Sub-components ──────────────────────────────────────────── */
+function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
+    <div
+      className="border p-6 space-y-5"
+      style={{
+        border: `1px solid var(--border)`,
+        background: "var(--surface)",
+      }}
+    >
       {children}
     </div>
   );
@@ -267,8 +312,11 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+    <div className="space-y-2">
+      <label
+        className="block text-xs uppercase tracking-[0.18em]"
+        style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
+      >
         {label}
       </label>
       {children}
@@ -287,9 +335,16 @@ function SubmitButton({
     <button
       type="submit"
       disabled={loading}
-      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
-                 bg-cyan-600 hover:bg-cyan-500 text-white font-medium
-                 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full flex items-center justify-center gap-2 py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{
+        background: "var(--accent)",
+        color: "var(--accent-foreground)",
+        fontFamily: "var(--font-mono)",
+        fontSize: "12px",
+        fontWeight: 500,
+        textTransform: "uppercase",
+        letterSpacing: "0.18em",
+      }}
     >
       {icon}
       {loading ? "Procesando..." : children}

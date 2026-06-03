@@ -6,6 +6,7 @@ import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import {
   PublicKey,
   SystemProgram,
+  Transaction,
 } from "@solana/web3.js";
 import {
   TOKEN_PROGRAM_ID,
@@ -13,6 +14,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
   getAccount,
+  createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
 
 // ── Constantes ───────────────────────────────────────────
@@ -273,12 +275,41 @@ export function useOceanSense() {
     [program, wallet.publicKey, getBuoyPda, fetchBuoys]
   );
 
+  // ── Helper: crear ATA Token-2022 si no existe ────────
+  const ensureCpenAta = useCallback(
+    async (cpenMint: PublicKey, ataAddress: PublicKey) => {
+      const info = await connection.getAccountInfo(ataAddress);
+      if (info) return;
+      setTxStatus("Creando cuenta cPEN (primera vez)…");
+      const ix = createAssociatedTokenAccountInstruction(
+        wallet.publicKey!,
+        ataAddress,
+        wallet.publicKey!,
+        cpenMint,
+        TOKEN_2022_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+      );
+      const tx = new Transaction().add(ix);
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      tx.recentBlockhash = blockhash;
+      tx.feePayer = wallet.publicKey!;
+      const signed = await wallet.signTransaction!(tx);
+      const sig = await connection.sendRawTransaction(signed.serialize());
+      await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight });
+    },
+    [connection, wallet]
+  );
+
   // ── INSTRUCCIÓN: Claim reward en cPEN ────────────────
   const claimRewardAsCpen = useCallback(
     async (buoyId: string) => {
-      if (!program || !wallet.publicKey || !CPEN_MINT_ADDRESS) return;
+      if (!program || !wallet.publicKey) return;
+      if (!CPEN_MINT_ADDRESS) {
+        setTxStatus("❌ NEXT_PUBLIC_CPEN_MINT no configurado en .env.local");
+        return;
+      }
       setLoading(true);
-      setTxStatus("Cobrando recompensa en cPEN...");
+      setTxStatus("Verificando cuenta cPEN…");
       try {
         const [buoyPda]       = getBuoyPda(buoyId, wallet.publicKey);
         const [mintConfigPda] = getMintConfigPda();
@@ -288,18 +319,21 @@ export function useOceanSense() {
           cpenMint, wallet.publicKey, false, TOKEN_2022_PROGRAM_ID
         );
 
+        // Crear el ATA Token-2022 si el usuario no lo tiene aún
+        await ensureCpenAta(cpenMint, operatorCpenAta);
+
+        setTxStatus("Cobrando recompensa en cPEN…");
         const tx = await program.methods
           .claimRewardAsCpen()
           .accounts({
-            buoy:                   buoyPda,
-            owner:                  wallet.publicKey,
-            mintConfig:             mintConfigPda,
-            cpenMint:               cpenMint,
-            operatorCpenAccount:    operatorCpenAta,
-            operator:               wallet.publicKey,
-            tokenProgram2022:       TOKEN_2022_PROGRAM_ID,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            systemProgram:          SystemProgram.programId,
+            buoy:                buoyPda,
+            owner:               wallet.publicKey,
+            mintConfig:          mintConfigPda,
+            cpenMint:            cpenMint,
+            operatorCpenAccount: operatorCpenAta,
+            operator:            wallet.publicKey,
+            tokenProgram2022:    TOKEN_2022_PROGRAM_ID,
+            systemProgram:       SystemProgram.programId,
           })
           .rpc();
         setTxStatus(`✅ cPEN cobrado | ${tx.slice(0, 8)}...`);
@@ -310,15 +344,19 @@ export function useOceanSense() {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getBuoyPda, getMintConfigPda, fetchBuoys, fetchCpenStats]
+    [program, wallet.publicKey, getBuoyPda, getMintConfigPda, ensureCpenAta, fetchBuoys, fetchCpenStats]
   );
 
   // ── INSTRUCCIÓN: Mint cPEN con USDC ──────────────────
   const mintCpen = useCallback(
     async (usdcAmount: number) => {
-      if (!program || !wallet.publicKey || !CPEN_MINT_ADDRESS) return;
+      if (!program || !wallet.publicKey) return;
+      if (!CPEN_MINT_ADDRESS) {
+        setTxStatus("❌ NEXT_PUBLIC_CPEN_MINT no configurado en .env.local");
+        return;
+      }
       setLoading(true);
-      setTxStatus("Convirtiendo USDC → cPEN...");
+      setTxStatus("Verificando cuenta cPEN…");
       try {
         const [mintConfigPda] = getMintConfigPda();
         const cpenMint = new PublicKey(CPEN_MINT_ADDRESS);
@@ -334,19 +372,22 @@ export function useOceanSense() {
           PROGRAM_ID
         );
 
+        // Crear el ATA Token-2022 si no existe
+        await ensureCpenAta(cpenMint, cpenAta);
+
+        setTxStatus("Convirtiendo USDC → cPEN…");
         const tx = await program.methods
           .mintCpen(new BN(Math.round(usdcAmount * 1_000_000)))
           .accounts({
-            mintConfig:             mintConfigPda,
-            cpenMint:               cpenMint,
-            userCpenAccount:        cpenAta,
-            usdcSource:             usdcAta,
-            usdcCollateralVault:    collateralVault,
-            user:                   wallet.publicKey,
-            tokenProgramLegacy:     TOKEN_PROGRAM_ID,
-            tokenProgram2022:       TOKEN_2022_PROGRAM_ID,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            systemProgram:          SystemProgram.programId,
+            mintConfig:          mintConfigPda,
+            cpenMint:            cpenMint,
+            userCpenAccount:     cpenAta,
+            usdcSource:          usdcAta,
+            usdcCollateralVault: collateralVault,
+            user:                wallet.publicKey,
+            tokenProgramLegacy:  TOKEN_PROGRAM_ID,
+            tokenProgram2022:    TOKEN_2022_PROGRAM_ID,
+            systemProgram:       SystemProgram.programId,
           })
           .rpc();
         setTxStatus(`✅ cPEN minted | ${tx.slice(0, 8)}...`);
@@ -357,13 +398,17 @@ export function useOceanSense() {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getMintConfigPda, fetchCpenStats]
+    [program, wallet.publicKey, getMintConfigPda, ensureCpenAta, fetchCpenStats]
   );
 
   // ── INSTRUCCIÓN: Redeem cPEN → USDC ──────────────────
   const redeemCpen = useCallback(
     async (cpenAmount: number) => {
-      if (!program || !wallet.publicKey || !CPEN_MINT_ADDRESS) return;
+      if (!program || !wallet.publicKey) return;
+      if (!CPEN_MINT_ADDRESS) {
+        setTxStatus("❌ NEXT_PUBLIC_CPEN_MINT no configurado en .env.local");
+        return;
+      }
       setLoading(true);
       setTxStatus("Convirtiendo cPEN → USDC...");
       try {

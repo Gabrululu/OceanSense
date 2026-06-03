@@ -5,7 +5,7 @@ pub const CPEN_DECIMALS:         u8   = 2;     // 1.00 cPEN = 100 unidades
 pub const TRANSFER_FEE_BASIS:    u16  = 50;    // 0.5% (50 basis points)
 pub const MAX_FEE:               u64  = 1_000_000; // máximo 10,000 cPEN de fee
 
-pub const USDC_TO_CPEN_RATE:     u64  = 380;   // 380 cPEN por cada 1 USDC
+pub const USDC_TO_CPEN_RATE:     u64  = 340;   // 340 cPEN por cada 1 USDC (1 USD = 3.40 PEN)
 pub const USDC_DECIMALS_FACTOR:  u64  = 1_000_000; // 1 USDC = 1_000_000 units
 
 // ─────────────────────────────────────────────────────────────────

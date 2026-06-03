@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Waves } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 
@@ -31,45 +30,78 @@ export function Navbar() {
   return (
     <nav
       className={clsx(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-md border-b",
         solid
-          ? "bg-[#020617]/90 border-b border-slate-800/70 backdrop-blur-md"
-          : "bg-transparent border-transparent"
+          ? "border-[var(--border)]"
+          : "border-transparent"
       )}
+      style={{
+        background: solid
+          ? "rgba(15, 30, 38, 0.85)"
+          : "transparent",
+      }}
     >
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[1600px] mx-auto px-6 lg:px-10 h-16 flex items-center justify-between gap-4">
 
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 shrink-0"
+          className="flex items-center gap-2 shrink-0 group"
           suppressHydrationWarning
         >
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center">
-            <Waves size={15} className="text-cyan-400" />
-          </div>
-          <span className="text-gradient font-bold text-base tracking-tight">
-            Ocean-Sense
+          <span className="relative h-2.5 w-2.5">
+            <span
+              className="absolute inset-0 rounded-full animate-ping opacity-60"
+              style={{ background: "var(--accent)" }}
+            />
+            <span
+              className="relative block h-2.5 w-2.5 rounded-full"
+              style={{ background: "var(--accent)" }}
+            />
           </span>
-          <span className="hidden sm:inline text-[10px] font-semibold text-slate-600 bg-slate-800/70 border border-slate-700/50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+          <span
+            className="text-xl tracking-tight"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 380,
+              color: "var(--foreground)",
+            }}
+          >
+            Ocean·Sense
+          </span>
+          <span
+            className="hidden sm:inline text-[9px] uppercase tracking-[0.18em] border px-2 py-0.5"
+            style={{
+              fontFamily: "var(--font-mono)",
+              color: "var(--muted-foreground)",
+              borderColor: "var(--border)",
+            }}
+          >
             Devnet
           </span>
         </Link>
 
         {/* Nav links */}
-        <div className="hidden md:flex items-center gap-0.5">
+        <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={clsx(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150",
+                "text-xs uppercase tracking-[0.18em] transition-colors duration-150",
                 pathname === link.href
-                  ? "text-cyan-400 bg-cyan-500/10"
-                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
+                  ? "text-[var(--foreground)]"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
               )}
+              style={{ fontFamily: "var(--font-mono)" }}
             >
               {link.label}
+              {pathname === link.href && (
+                <span
+                  className="block mt-0.5 h-px w-full"
+                  style={{ background: "var(--accent)" }}
+                />
+              )}
             </Link>
           ))}
         </div>
@@ -77,14 +109,17 @@ export function Navbar() {
         {/* Wallet button */}
         <WalletMultiButton
           style={{
-            background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
-            height: "36px",
-            fontSize: "13px",
-            fontWeight: "700",
-            borderRadius: "10px",
+            background: "var(--accent)",
+            color: "var(--accent-foreground)",
+            height: "34px",
+            fontSize: "11px",
+            fontFamily: "var(--font-mono)",
+            fontWeight: "500",
+            borderRadius: "0",
             padding: "0 18px",
-            boxShadow: "0 0 20px rgba(8,145,178,0.3)",
-            letterSpacing: "0.01em",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            boxShadow: "none",
           }}
         />
       </div>

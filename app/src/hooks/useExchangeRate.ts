@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 const CACHE_KEY = "usd_pen_rate_v1";
 const CACHE_TTL = 60 * 60 * 1000; // 1 hora
-const FALLBACK_RATE = 3.44;
+const FALLBACK_RATE = 3.40;
 
 interface RateCache {
   rate: number;
