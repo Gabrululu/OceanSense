@@ -1,0 +1,300 @@
+{
+  "version": "0.1.0",
+  "name": "ocean_sense",
+  "instructions": [
+    {
+      "name": "registerBuoy",
+      "accounts": [
+        { "name": "buoy", "isMut": true, "isSigner": false },
+        { "name": "operator", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "buoyId", "type": "string" },
+        { "name": "latitude", "type": "i64" },
+        { "name": "longitude", "type": "i64" },
+        { "name": "locationName", "type": "string" }
+      ]
+    },
+    {
+      "name": "submitReading",
+      "accounts": [
+        { "name": "buoy", "isMut": true, "isSigner": false },
+        { "name": "reading", "isMut": true, "isSigner": false },
+        { "name": "operator", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "temperature", "type": "i32" },
+        { "name": "salinity", "type": "u32" },
+        { "name": "waveHeight", "type": "u32" },
+        { "name": "pollutionLevel", "type": "u8" },
+        { "name": "timestamp", "type": "i64" }
+      ]
+    },
+    {
+      "name": "toggleBuoy",
+      "accounts": [
+        { "name": "buoy", "isMut": true, "isSigner": false },
+        { "name": "operator", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "active", "type": "bool" }
+      ]
+    },
+    {
+      "name": "initializeVault",
+      "accounts": [
+        { "name": "vaultState", "isMut": true, "isSigner": false },
+        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "usdcMint", "isMut": false, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "rent", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "fundVault",
+      "accounts": [
+        { "name": "vaultState", "isMut": true, "isSigner": false },
+        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "funderTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "funder", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "claimReward",
+      "accounts": [
+        { "name": "buoy", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": false },
+        { "name": "vaultState", "isMut": true, "isSigner": false },
+        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "operatorTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "operator", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "initializeCpenMint",
+      "accounts": [
+        { "name": "mintConfig", "isMut": true, "isSigner": false },
+        { "name": "cpenMint", "isMut": false, "isSigner": false },
+        { "name": "usdcMint", "isMut": false, "isSigner": false },
+        { "name": "usdcCollateralVault", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "tokenProgramLegacy", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram2022", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "rent", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "mintCpen",
+      "accounts": [
+        { "name": "mintConfig", "isMut": true, "isSigner": false },
+        { "name": "cpenMint", "isMut": true, "isSigner": false },
+        { "name": "userCpenAccount", "isMut": true, "isSigner": false },
+        { "name": "usdcSource", "isMut": true, "isSigner": false },
+        { "name": "usdcCollateralVault", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "tokenProgramLegacy", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram2022", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "usdcAmount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "redeemCpen",
+      "accounts": [
+        { "name": "mintConfig", "isMut": true, "isSigner": false },
+        { "name": "cpenMint", "isMut": true, "isSigner": false },
+        { "name": "userCpenAccount", "isMut": true, "isSigner": false },
+        { "name": "usdcDestination", "isMut": true, "isSigner": false },
+        { "name": "usdcCollateralVault", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "tokenProgramLegacy", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram2022", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "cpenAmount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "claimRewardAsCpen",
+      "accounts": [
+        { "name": "buoy", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": false },
+        { "name": "mintConfig", "isMut": true, "isSigner": false },
+        { "name": "cpenMint", "isMut": true, "isSigner": false },
+        { "name": "operatorCpenAccount", "isMut": true, "isSigner": false },
+        { "name": "operator", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram2022", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BuoyState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owner", "type": "publicKey" },
+          { "name": "buoyId", "type": "string" },
+          { "name": "latitude", "type": "i64" },
+          { "name": "longitude", "type": "i64" },
+          { "name": "locationName", "type": "string" },
+          { "name": "isActive", "type": "bool" },
+          { "name": "totalReadings", "type": "u64" },
+          { "name": "totalRewards", "type": "u64" },
+          { "name": "unclaimedUsdc", "type": "u64" },
+          { "name": "lastReadingTimestamp", "type": "i64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "OceanReading",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "buoy", "type": "publicKey" },
+          { "name": "operator", "type": "publicKey" },
+          { "name": "temperature", "type": "i32" },
+          { "name": "salinity", "type": "u32" },
+          { "name": "waveHeight", "type": "u32" },
+          { "name": "pollutionLevel", "type": "u8" },
+          { "name": "timestamp", "type": "i64" },
+          { "name": "usdcReward", "type": "u64" },
+          { "name": "readingIndex", "type": "u64" },
+          { "name": "claimed", "type": "bool" }
+        ]
+      }
+    },
+    {
+      "name": "VaultState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "usdcMint", "type": "publicKey" },
+          { "name": "totalFunded", "type": "u64" },
+          { "name": "totalPaid", "type": "u64" },
+          { "name": "vaultBump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "CpenMintConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "cpenMint", "type": "publicKey" },
+          { "name": "usdcMint", "type": "publicKey" },
+          { "name": "totalMinted", "type": "u64" },
+          { "name": "totalRedeemed", "type": "u64" },
+          { "name": "totalFeesCollected", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "BuoyRegistered",
+      "fields": [
+        { "name": "buoy", "type": "publicKey", "index": false },
+        { "name": "owner", "type": "publicKey", "index": false },
+        { "name": "buoyId", "type": "string", "index": false },
+        { "name": "latitude", "type": "i64", "index": false },
+        { "name": "longitude", "type": "i64", "index": false }
+      ]
+    },
+    {
+      "name": "ReadingSubmitted",
+      "fields": [
+        { "name": "buoy", "type": "publicKey", "index": false },
+        { "name": "operator", "type": "publicKey", "index": false },
+        { "name": "temperature", "type": "i32", "index": false },
+        { "name": "salinity", "type": "u32", "index": false },
+        { "name": "pollutionLevel", "type": "u8", "index": false },
+        { "name": "usdcReward", "type": "u64", "index": false },
+        { "name": "timestamp", "type": "i64", "index": false }
+      ]
+    },
+    {
+      "name": "PollutionAlert",
+      "fields": [
+        { "name": "buoy", "type": "publicKey", "index": false },
+        { "name": "latitude", "type": "i64", "index": false },
+        { "name": "longitude", "type": "i64", "index": false },
+        { "name": "pollutionLevel", "type": "u8", "index": false },
+        { "name": "timestamp", "type": "i64", "index": false }
+      ]
+    },
+    {
+      "name": "RewardClaimed",
+      "fields": [
+        { "name": "buoy", "type": "publicKey", "index": false },
+        { "name": "operator", "type": "publicKey", "index": false },
+        { "name": "usdcAmount", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "CpenMinted",
+      "fields": [
+        { "name": "user", "type": "publicKey", "index": false },
+        { "name": "usdcIn", "type": "u64", "index": false },
+        { "name": "cpenOut", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "CpenRedeemed",
+      "fields": [
+        { "name": "user", "type": "publicKey", "index": false },
+        { "name": "cpenIn", "type": "u64", "index": false },
+        { "name": "usdcOut", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "RewardClaimedAsCpen",
+      "fields": [
+        { "name": "buoy", "type": "publicKey", "index": false },
+        { "name": "operator", "type": "publicKey", "index": false },
+        { "name": "usdcEarned", "type": "u64", "index": false },
+        { "name": "cpenReceived", "type": "u64", "index": false }
+      ]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "StringTooLong", "msg": "El string excede el tamaño permitido" },
+    { "code": 6001, "name": "InvalidPollutionLevel", "msg": "Nivel de contaminación inválido (0-3)" },
+    { "code": 6002, "name": "BuoyNotActive", "msg": "La boya no está activa" },
+    { "code": 6003, "name": "Unauthorized", "msg": "Solo el operador dueño puede realizar esta acción" },
+    { "code": 6004, "name": "Overflow", "msg": "Overflow aritmético" },
+    { "code": 6005, "name": "NothingToClaim", "msg": "No hay recompensas pendientes de cobro" },
+    { "code": 6006, "name": "InsufficientVaultFunds", "msg": "El vault no tiene fondos suficientes" },
+    { "code": 6007, "name": "InvalidAmount", "msg": "Monto inválido" },
+    { "code": 6008, "name": "ReadingTooSoon", "msg": "Debes esperar al menos 1 hora entre lecturas de la misma boya" },
+    { "code": 6008, "name": "AmountTooSmall", "msg": "Monto muy pequeño para convertir" },
+    { "code": 6009, "name": "InsufficientBalance", "msg": "Saldo insuficiente" }
+  ],
+  "metadata": {
+    "address": "APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx"
+  }
+}

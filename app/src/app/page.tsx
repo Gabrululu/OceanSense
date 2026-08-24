@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import Image from "next/image";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import type { BuoyData } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
@@ -45,7 +46,7 @@ export default function HomePage() {
           "Peru · Pacific Coast",
           "3,080 km Monitored",
           "Solana Devnet",
-          "40K Artisanal Fishers",
+          "77,326 Artisanal Fishers",
           `1 USD = ${rate.toFixed(2)} cPEN`,
           "< $0.001 / tx",
           "DePIN Network",
@@ -73,43 +74,44 @@ export default function HomePage() {
 /* ── Hero ───────────────────────────────────────────────────── */
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden">
+    <section className="relative min-h-dvh flex flex-col overflow-hidden">
 
       {/* ── Background image + layered overlays ── */}
       <div className="absolute inset-0">
-        <img
+        <Image
           src="/hero-ocean.jpg"
           alt="Peruvian Pacific coast with monitoring buoy at dusk"
-          className="h-full w-full object-cover object-[center_35%]"
-          width={1920}
-          height={1280}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[center_35%]"
         />
         {/* Dark veil — uniform readability across the whole frame */}
         <div
           className="absolute inset-0"
-          style={{ background: "rgba(10,20,26,0.62)" }}
+          style={{ background: "rgba(7,13,29,0.62)" }}
         />
         {/* Top fade — merges with navbar */}
         <div
           className="absolute inset-x-0 top-0 h-40"
-          style={{ background: "linear-gradient(to bottom, rgba(10,20,26,0.9) 0%, transparent 100%)" }}
+          style={{ background: "linear-gradient(to bottom, rgba(7,13,29,0.9) 0%, transparent 100%)" }}
         />
         {/* Bottom fade — merges cleanly into the next section */}
         <div
           className="absolute inset-x-0 bottom-0 h-56"
-          style={{ background: "linear-gradient(to top, #0f1e26 0%, rgba(10,20,26,0.85) 40%, transparent 100%)" }}
+          style={{ background: "linear-gradient(to top, #0B132B 0%, rgba(7,13,29,0.85) 40%, transparent 100%)" }}
         />
         {/* Subtle left vignette — keeps text on left more legible */}
         <div
           className="absolute inset-y-0 left-0 w-2/3"
-          style={{ background: "linear-gradient(to right, rgba(10,20,26,0.45) 0%, transparent 100%)" }}
+          style={{ background: "linear-gradient(to right, rgba(7,13,29,0.45) 0%, transparent 100%)" }}
         />
       </div>
 
       {/* ── Top meta bar ── */}
       <div
         className="relative z-10 max-w-[1600px] mx-auto px-6 lg:px-10 w-full pt-24 flex justify-between t-eyebrow"
-        style={{ color: "rgba(139,170,173,0.7)" }}
+        style={{ color: "rgba(143,163,188,0.7)" }}
       >
         <span>(01) — Peru · Pacific</span>
         <span className="hidden sm:inline">N°001 / Frontier &apos;26</span>
@@ -122,7 +124,7 @@ function HeroSection() {
         {/* Headline — a bit above the bottom row */}
         <h1
           className="t-display-2xl mb-16 reveal-up col-span-12 lg:col-span-8"
-          style={{ color: "#f0f5f4", textShadow: "0 2px 24px rgba(0,0,0,0.5)" }}
+          style={{ color: "var(--foreground)", textShadow: "0 2px 24px rgba(0,0,0,0.5)" }}
         >
           An ocean<br />
           <em style={{ fontStyle: "italic", color: "var(--accent)" }}>
@@ -142,7 +144,7 @@ function HeroSection() {
               <a
                 href="#network"
                 className="btn-ghost"
-                style={{ background: "rgba(15,30,38,0.45)", backdropFilter: "blur(8px)" }}
+                style={{ background: "rgba(11,19,43,0.45)", backdropFilter: "blur(8px)" }}
               >
                 Explore Network <ChevronDown size={15} />
               </a>
@@ -154,14 +156,14 @@ function HeroSection() {
             <p
               className="t-body-lg reveal-up"
               style={{
-                color: "rgba(220,235,233,0.78)",
+                color: "rgba(215,228,240,0.78)",
                 animationDelay: "0.22s",
                 textShadow: "0 1px 8px rgba(0,0,0,0.4)",
                 lineHeight: "1.65",
               }}
             >
               A DePIN network where artisanal fishers operate IoT buoys and earn{" "}
-              <strong style={{ color: "#f0f5f4", fontWeight: 500 }}>cPEN</strong>
+              <strong style={{ color: "var(--foreground)", fontWeight: 500 }}>cPEN</strong>
               {" "}— a Solana stablecoin pegged to the Peruvian Sol — for every verified ocean reading.
             </p>
           </div>
@@ -171,12 +173,12 @@ function HeroSection() {
             <p
               className="text-sm leading-relaxed"
               style={{
-                color: "rgba(220,235,233,0.72)",
+                color: "rgba(215,228,240,0.72)",
                 textShadow: "0 1px 8px rgba(0,0,0,0.4)",
               }}
             >
               A DePIN network where artisanal fishers operate IoT buoys and earn{" "}
-              <strong style={{ color: "#f0f5f4", fontWeight: 500 }}>cPEN</strong>
+              <strong style={{ color: "var(--foreground)", fontWeight: 500 }}>cPEN</strong>
               {" "}for every verified ocean reading.
             </p>
           </div>
@@ -186,7 +188,7 @@ function HeroSection() {
         {/* Bottom scroll hint */}
         <div
           className="mt-14 flex items-center justify-between t-mono-xs"
-          style={{ color: "rgba(139,170,173,0.55)" }}
+          style={{ color: "rgba(143,163,188,0.55)" }}
         >
           <span>Scroll · 01 / 06</span>
           <span className="float-slow" style={{ color: "var(--accent)" }}>◊</span>
@@ -345,7 +347,7 @@ function ProblemSection() {
               className="col-span-12 md:col-span-4 md:col-start-9 t-body self-end"
               style={{ color: "var(--muted-foreground)" }}
             >
-              3,080 km of coastline with no real-time ocean data — and 40,000 fishers
+              3,080 km of coastline with no real-time ocean data — and 77,326 fishers
               paying the price every season.
             </p>
           </div>
@@ -410,7 +412,7 @@ const PROBLEMS = [
   {
     stat: "3,080 km",
     title: "No real-time monitoring",
-    desc: "Peru's entire coastline has zero decentralized data infrastructure. IMARPE and SENAHMI are centralized, under-resourced, and slow to respond.",
+    desc: "Peru's entire coastline has zero decentralized data infrastructure. IMARPE and SENAMHI are centralized, under-resourced, and slow to respond.",
   },
   {
     stat: "$3B lost",
@@ -418,7 +420,7 @@ const PROBLEMS = [
     desc: "Catastrophic economic losses because no early-warning network existed. Fish populations collapsed overnight with no data to predict the event.",
   },
   {
-    stat: "40,000",
+    stat: "77,326",
     title: "Fishers without data",
     desc: "Artisanal fishers make life-and-death decisions based on experience alone. No temperature alerts, no pollution warnings, no community coordination.",
   },
@@ -532,7 +534,7 @@ const STEPS = [
   {
     icon: <CircleDollarSign size={20} style={{ color: "var(--sand)" }} />,
     title: "Earn cPEN",
-    desc: "Every valid reading pays the operator in cPEN — a Solana stablecoin pegged 1:1 to the Peruvian Sol. Critical pollution alerts pay 5× more.",
+    desc: "Every valid reading pays the operator in cPEN — a Solana stablecoin pegged 1:1 to the Peruvian Sol. Critical pollution alerts pay 10× more.",
     reward: "Up to 19.00 S/ per reading",
   },
 ];
@@ -894,18 +896,17 @@ function FisherSection({ rate, rateFetching }: { rate: number; rateFetching: boo
         {/* Right: image — full height of section */}
         <div className="col-span-12 md:col-span-5">
           <div className="relative h-full min-h-[300px] md:min-h-[560px] overflow-hidden">
-            <img
+            <Image
               src="/fisher.jpg"
               alt="Artisanal fisher silhouette at dawn"
-              className="absolute inset-0 h-full w-full object-cover object-center"
-              loading="lazy"
-              width={1400}
-              height={1750}
+              fill
+              sizes="(min-width: 768px) 42vw, 100vw"
+              className="object-cover object-center"
             />
             <div
               className="absolute inset-0"
               style={{
-                background: "linear-gradient(to top, rgba(15,30,38,0.7) 0%, rgba(15,30,38,0.15) 50%, transparent 100%)",
+                background: "linear-gradient(to top, rgba(11,19,43,0.7) 0%, rgba(11,19,43,0.15) 50%, transparent 100%)",
               }}
             />
             <div
@@ -928,24 +929,23 @@ function DataStripSection() {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0">
-        <img
+        <Image
           src="/texture-water.jpg"
           alt=""
           aria-hidden
-          className="h-full w-full object-cover opacity-30"
-          loading="lazy"
-          width={1600}
-          height={1000}
+          fill
+          sizes="100vw"
+          className="object-cover opacity-30"
         />
         <div
           className="absolute inset-0"
-          style={{ background: "rgba(15,30,38,0.72)" }}
+          style={{ background: "rgba(11,19,43,0.72)" }}
         />
       </div>
       <div className="relative max-w-[1600px] mx-auto px-6 lg:px-10 py-16 md:py-32 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
         {[
           ["3,080", "km de litoral"],
-          ["40k", "pescadores alcanzados"],
+          ["77,326", "pescadores alcanzados"],
           ["$3B", "pérdida El Niño '23"],
           ["< $0.001", "fee por tx en Solana"],
         ].map(([n, l]) => (

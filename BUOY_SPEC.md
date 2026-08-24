@@ -224,7 +224,7 @@ Sensors → ESP32 (ADC/I²C) → aggregate and map to on-chain types
 | **v0.1** | ESP32 + basic sensors (temperature, salinity) on bench, Devnet transactions | 4 weeks |
 | **v0.2** | IMU wave height + turbidimeter, ATECC608B integration | +3 weeks |
 | **v0.3** | IP68-sealed enclosure, pool / wave-tank testing | +4 weeks |
-| **v1.0** | Pilot deployment at sea — 1 buoy at Paita cove, 30 continuous days | +6 weeks |
+| **v1.0** | Pilot deployment at sea — 1 buoy off the coast of Lima, 30 continuous days | +6 weeks |
 
 ---
 

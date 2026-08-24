@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-import { Waves, Send, PlusCircle } from "lucide-react";
+import { Waves, Send, PlusCircle, ExternalLink } from "lucide-react";
 import clsx from "clsx";
 
 const POLLUTION_LABELS = [
@@ -16,7 +16,7 @@ const POLLUTION_LABELS = [
 
 export default function ReadingPage() {
   const { connected } = useWallet();
-  const { buoys, loading, txStatus, registerBuoy, submitReading } = useOceanSense();
+  const { buoys, loading, txStatus, lastTxSignature, registerBuoy, submitReading } = useOceanSense();
   const { rate } = useExchangeRate();
 
   const [tab, setTab] = useState<"register" | "reading">("reading");
@@ -60,7 +60,7 @@ export default function ReadingPage() {
   if (!connected) {
     return (
       <div
-        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-screen"
+        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-dvh"
         style={{ background: "var(--background)" }}
       >
         <Waves size={40} style={{ color: "var(--muted-foreground)" }} />
@@ -74,7 +74,7 @@ export default function ReadingPage() {
   return (
     <div
       className="max-w-2xl mx-auto px-6 pt-24 pb-16 space-y-8"
-      style={{ background: "var(--background)", minHeight: "100vh" }}
+      style={{ background: "var(--background)", minHeight: "100dvh" }}
     >
       {/* Page header */}
       <div className="pt-6">
@@ -268,7 +268,7 @@ export default function ReadingPage() {
       {/* Status */}
       {txStatus && (
         <div
-          className="px-4 py-3 text-sm border"
+          className="px-4 py-3 text-sm border flex items-center justify-between"
           style={{
             fontFamily: "var(--font-mono)",
             background: txStatus.startsWith("✅")
@@ -288,7 +288,17 @@ export default function ReadingPage() {
               : "var(--foreground)",
           }}
         >
-          {txStatus}
+          <span>{txStatus}</span>
+          {txStatus.startsWith("✅") && lastTxSignature && (
+            <a
+              href={`https://explorer.solana.com/tx/${lastTxSignature}?cluster=devnet`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs hover:underline"
+            >
+              Ver en Explorer <ExternalLink size={11} />
+            </a>
+          )}
         </div>
       )}
     </div>

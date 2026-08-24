@@ -118,7 +118,7 @@ const IDL = {
   ],
 } as const;
 
-const DEFAULT_PROGRAM_ID = "EawytSiCAZ6tKx6t1bVFmSb8Y7uTUbxMdydrokCiR71N";
+const DEFAULT_PROGRAM_ID = "APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx";
 const DEFAULT_USDC_MINT  = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 
 // ── OceanSenseClient ──────────────────────────────────────────────

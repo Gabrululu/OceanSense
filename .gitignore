@@ -22,6 +22,8 @@ app/.anchor/
 !tsconfig.json
 !metadata/*.json
 !Anchor.toml
+# IDL del frontend — necesario para que la app hable con el programa, no es una clave
+!app/public/idl/*.json
 
 # Wallet local de desarrollo
 test-ledger/

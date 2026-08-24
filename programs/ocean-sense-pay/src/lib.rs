@@ -6,9 +6,16 @@ use anchor_spl::token_interface::{Mint as InterfaceMint, TokenAccount as Interfa
 
 pub mod cpen;
 
-declare_id!("EawytSiCAZ6tKx6t1bVFmSb8Y7uTUbxMdydrokCiR71N");
+declare_id!("APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx");
 
 const LAMPORTS_TO_USDC: u64 = 1;
+
+// Intervalo mínimo entre lecturas pagadas de una misma boya — evita el farming
+// de recompensas por spam de transacciones (no había ningún límite antes).
+const MIN_READING_INTERVAL_SECS: i64 = 3600; // 1 hora
+
+// Bono único al registrar la primera lectura de una boya nueva.
+const WELCOME_BONUS_USDC: u64 = 1_000_000; // 1.00 USDC
 
 #[program]
 pub mod ocean_sense {
@@ -73,12 +80,34 @@ pub mod ocean_sense {
             OceanSenseError::Unauthorized
         );
 
-        // Recompensa en unidades USDC (6 decimales)
-        let usdc_reward: u64 = match pollution_level {
-            3 => 5_000_000, // 5.00 USDC — alerta crítica
-            2 => 2_000_000, // 2.00 USDC — moderado
-            _ => 1_000_000, // 1.00 USDC — normal
+        // Cooldown anti-spam: se compara contra el reloj on-chain (no el
+        // timestamp que manda el cliente, que se podría falsear) y contra el
+        // último valor de reloj on-chain guardado en la boya. La primera
+        // lectura de una boya (last_reading_timestamp == 0) siempre pasa.
+        let now = Clock::get()?.unix_timestamp;
+        if ctx.accounts.buoy.last_reading_timestamp != 0 {
+            require!(
+                now - ctx.accounts.buoy.last_reading_timestamp >= MIN_READING_INTERVAL_SECS,
+                OceanSenseError::ReadingTooSoon
+            );
+        }
+
+        let is_first_reading = ctx.accounts.buoy.total_readings == 0;
+
+        // Recompensa en unidades USDC (6 decimales) — recalibrada para que el
+        // costo del protocolo escale de forma predecible junto con el cooldown
+        // de arriba, y para que la alerta crítica sea claramente lo más
+        // rentable de reportar (10× la lectura base, antes era 5×).
+        let base_reward: u64 = match pollution_level {
+            3 => 2_000_000, // 2.00 USDC — alerta crítica (10×)
+            2 => 750_000,   // 0.75 USDC — moderado
+            1 => 300_000,   // 0.30 USDC — leve
+            _ => 200_000,   // 0.20 USDC — limpia (base)
         };
+        let welcome_bonus: u64 = if is_first_reading { WELCOME_BONUS_USDC } else { 0 };
+        let usdc_reward: u64 = base_reward
+            .checked_add(welcome_bonus)
+            .ok_or(OceanSenseError::Overflow)?;
 
         // Extraer valores antes de borrows mutables
         let buoy_key = ctx.accounts.buoy.key();
@@ -116,7 +145,9 @@ pub mod ocean_sense {
             .unclaimed_usdc
             .checked_add(usdc_reward)
             .ok_or(OceanSenseError::Overflow)?;
-        buoy.last_reading_timestamp = timestamp;
+        // Se guarda el reloj on-chain (verificable), no el timestamp del
+        // cliente — es lo que usa el chequeo de cooldown de arriba.
+        buoy.last_reading_timestamp = now;
 
         emit!(ReadingSubmitted {
             buoy: buoy_key,
@@ -143,12 +174,13 @@ pub mod ocean_sense {
         }
 
         msg!(
-            "Lectura | Boya: {} | Temp: {}.{}C | Contaminacion: {} | Recompensa: {} USDC",
+            "Lectura | Boya: {} | Temp: {}.{}C | Contaminacion: {} | Recompensa: {} USDC{}",
             buoy_id_str,
             temperature / 100,
             temperature.abs() % 100,
             pollution_level,
             usdc_reward / 1_000_000,
+            if is_first_reading { " (incluye bono de bienvenida)" } else { "" },
         );
         Ok(())
     }
@@ -695,4 +727,6 @@ pub enum OceanSenseError {
     InsufficientVaultFunds,
     #[msg("Monto inválido")]
     InvalidAmount,
+    #[msg("Debes esperar al menos 1 hora entre lecturas de la misma boya")]
+    ReadingTooSoon,
 }

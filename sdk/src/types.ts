@@ -24,7 +24,7 @@ export interface OceanSenseConfig {
   connection: import("@solana/web3.js").Connection;
   /** Operator keypair — holds the private key that signs readings */
   keypair: import("@solana/web3.js").Keypair;
-  /** Override default program ID (EawytSiCAZ6tKx6t1bVFmSb8Y7uTUbxMdydrokCiR71N) */
+  /** Override default program ID (APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx) */
   programId?: string;
   /** Override default Devnet USDC mint (4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU) */
   usdcMint?: string;

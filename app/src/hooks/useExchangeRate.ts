@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 const CACHE_KEY = "usd_pen_rate_v1";
 const CACHE_TTL = 60 * 60 * 1000; // 1 hora
-const FALLBACK_RATE = 3.40;
+const FALLBACK_RATE = 3.36;
 
 interface RateCache {
   rate: number;
@@ -32,7 +32,7 @@ export function useExchangeRate() {
 
     // Caché vencida o inexistente — obtener tasa en vivo
     setFetching(true);
-    fetch("https://api.frankfurter.app/latest?from=USD&to=PEN")
+    fetch("https://open.er-api.com/v6/latest/USD")
       .then((r) => {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();

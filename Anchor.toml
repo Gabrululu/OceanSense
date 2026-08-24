@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-ocean_sense_pay = "EawytSiCAZ6tKx6t1bVFmSb8Y7uTUbxMdydrokCiR71N"
+ocean_sense_pay = "APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx"
 
 [registry]
 url = "https://api.apr.dev"

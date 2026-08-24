@@ -129,19 +129,18 @@ describe("🌊 Ocean-Sense Pay", () => {
     assert.equal(acct.isActive, true);
   });
 
-  it("Envía lecturas oceánicas y acumula recompensas", async () => {
-    // Get current state to use dynamic reading indices
+  it("Envía una lectura oceánica y acumula recompensa (con bono de bienvenida)", async () => {
+    // Primera lectura de esta boya → base 2.00 USDC (nivel 3, crítico) + 1.00 USDC de bono de bienvenida
     const buoyBefore = await program.account.buoyState.fetch(buoyPda);
     const startIdx   = buoyBefore.totalReadings;
     const unclaimedBefore = buoyBefore.unclaimedUsdc;
 
-    const idx0 = startIdx;
     const [readingPda0] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("reading"), buoyPda.toBuffer(), idx0.toArrayLike(Buffer, "le", 8)],
+      [Buffer.from("reading"), buoyPda.toBuffer(), startIdx.toArrayLike(Buffer, "le", 8)],
       program.programId
     );
     await program.methods
-      .submitReading(2250, 3510, 85, 0, new BN(Math.floor(Date.now() / 1000)))
+      .submitReading(1820, 3380, 210, 3, new BN(Math.floor(Date.now() / 1000)))
       .accounts({
         buoy: buoyPda, reading: readingPda0,
         operator: operator.publicKey,
@@ -149,25 +148,36 @@ describe("🌊 Ocean-Sense Pay", () => {
       } as any)
       .rpc();
 
-    const idx1 = new BN(startIdx.toNumber() + 1);
-    const [readingPda1] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("reading"), buoyPda.toBuffer(), idx1.toArrayLike(Buffer, "le", 8)],
-      program.programId
-    );
-    await program.methods
-      .submitReading(1820, 3380, 210, 3, new BN(Math.floor(Date.now() / 1000)))
-      .accounts({
-        buoy: buoyPda, reading: readingPda1,
-        operator: operator.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      } as any)
-      .rpc();
-
     const acct = await program.account.buoyState.fetch(buoyPda);
     const addedUsdc = acct.unclaimedUsdc.sub(unclaimedBefore);
-    assert.ok(addedUsdc.eq(new BN(6_000_000)),
-      `esperado +6 USDC, obtenido +${addedUsdc.toNumber() / 1e6}`);
+    assert.ok(addedUsdc.eq(new BN(3_000_000)),
+      `esperado +3 USDC (2.00 base + 1.00 bono), obtenido +${addedUsdc.toNumber() / 1e6}`);
     console.log("\n📊 USDC pendiente:", acct.unclaimedUsdc.toNumber() / 1e6, "USDC");
+  });
+
+  it("Rechaza una segunda lectura antes de 1h (cooldown)", async () => {
+    const buoyBefore = await program.account.buoyState.fetch(buoyPda);
+    const nextIdx = buoyBefore.totalReadings;
+    const [readingPda1] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("reading"), buoyPda.toBuffer(), nextIdx.toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+    try {
+      await program.methods
+        .submitReading(2250, 3510, 85, 0, new BN(Math.floor(Date.now() / 1000)))
+        .accounts({
+          buoy: buoyPda, reading: readingPda1,
+          operator: operator.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        } as any)
+        .rpc();
+      assert.fail("Debió fallar con ReadingTooSoon");
+    } catch (err: any) {
+      const ok = (err.message ?? "").includes("ReadingTooSoon") ||
+                 (err.message ?? "").includes("6008");
+      assert.ok(ok, err.message);
+      console.log("\n✅ Error esperado: ReadingTooSoon ✓ (cooldown de 1h funcionando)");
+    }
   });
 
   it("El operador cobra sus USDC acumulados", async () => {

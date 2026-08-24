@@ -19,3 +19,15 @@ idl-build      = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 anchor-lang    = { version = "0.30.1", features = ["init-if-needed"] }
 anchor-spl     = { version = "0.30.1", features = ["token", "token_2022", "associated_token"] }
 spl-token-2022 = { version = "0.9", features = ["no-entrypoint"] }
+# Pin directo: hashbrown >=0.16 requiere edition2024, que el cargo empaquetado
+# con el platform-tools de Solana (SBF) todavía no soporta. Sin Cargo.lock
+# commiteado, un build fresco resuelve la última versión y falla. indexmap
+# reciente arrastra ese hashbrown nuevo como dependencia propia, así que hay
+# que fijar ambos para que el resolver se quede en versiones compatibles con
+# edition2021.
+hashbrown      = "=0.14.5"
+indexmap       = "=2.2.6"
+blake3         = "=1.5.5"
+zeroize_derive = "=1.4.2"
+jobserver      = "=0.1.32"
+unicode-segmentation = "=1.11.0"

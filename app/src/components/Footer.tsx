@@ -16,7 +16,7 @@ export function Footer() {
             Built for the<br />Peruvian coast.
           </p>
           <p className="mt-6 max-w-md text-sm" style={{ color: "var(--muted-foreground)" }}>
-            A public-good protocol for 40,000 artisanal fishers along 3,080 km of coastline.            
+            A public-good protocol for 77,326 artisanal fishers along 3,080 km of coastline.
           </p>
         </div>
 
@@ -33,6 +33,7 @@ export function Footer() {
               { href: "/reading", label: "Ocean readings",  desc: "submit_reading()" },
               { href: "/claim",   label: "Claim rewards",   desc: "claim_reward_as_cpen()" },
               { href: "/cpen",    label: "cPEN mint",       desc: "mint_cpen()" },
+              { href: "/data",    label: "Data access",     desc: "fund_vault()" },
             ].map((item) => (
               <li key={item.href} className="border-t py-3" style={{ borderColor: "var(--border)" }}>
                 <Link
@@ -63,7 +64,7 @@ export function Footer() {
           <ul className="space-y-0">
             {[
               { label: "Solana Devnet",  tag: "chain" },
-              { label: "Anchor 0.30.1", tag: "program" },
+              { label: "Anchor 0.32.1", tag: "program" },
               { label: "Token-2022",    tag: "standard" },
               { label: "Next.js 14",    tag: "frontend" },
             ].map((item) => (
@@ -98,6 +99,14 @@ export function Footer() {
           style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
         >
           <span>© 2026 Ocean-Sense Labs</span>
+          <span className="flex gap-4">
+            <Link href="/privacy" className="hover:underline" style={{ color: "var(--muted-foreground)" }}>
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:underline" style={{ color: "var(--muted-foreground)" }}>
+              Terms
+            </Link>
+          </span>
           <span>—12.0464° S / —77.0428° W</span>
           <span>MIT License</span>
         </div>

@@ -3,11 +3,11 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-import { Coins, ExternalLink, TrendingUp, RefreshCw } from "lucide-react";
+import { Coins, DollarSign, ExternalLink, TrendingUp, RefreshCw } from "lucide-react";
 
 export default function ClaimPage() {
   const { connected } = useWallet();
-  const { buoys, loading, txStatus, claimRewardAsCpen } = useOceanSense();
+  const { buoys, vaultStats, loading, txStatus, lastTxSignature, claimRewardAsCpen, claimReward } = useOceanSense();
   const { rate, lastUpdated, fetching } = useExchangeRate();
 
   const myBuoys = buoys.filter((b) => b.unclaimedUsdc > 0);
@@ -17,7 +17,7 @@ export default function ClaimPage() {
   if (!connected) {
     return (
       <div
-        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-screen"
+        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-dvh"
         style={{ background: "var(--background)" }}
       >
         <Coins size={40} style={{ color: "var(--muted-foreground)" }} />
@@ -31,7 +31,7 @@ export default function ClaimPage() {
   return (
     <div
       className="max-w-2xl mx-auto px-6 pt-24 pb-16 space-y-8"
-      style={{ background: "var(--background)", minHeight: "100vh" }}
+      style={{ background: "var(--background)", minHeight: "100dvh" }}
     >
       {/* Page header */}
       <div className="pt-6">
@@ -61,7 +61,14 @@ export default function ClaimPage() {
           )}
         </div>
         <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
-          Cobra tus datos oceánicos en cPEN
+          Cobra tus datos oceánicos en cPEN o en USDC crudo
+        </p>
+        <p className="mt-1 t-mono-xs" style={{ color: "var(--muted-foreground)", opacity: 0.7 }}>
+          El USDC sale del vault institucional (ver{" "}
+          <a href="/data" className="hover:underline" style={{ color: "var(--sand)" }}>
+            /data
+          </a>
+          ) — disponible ahora: {vaultStats ? `$${(vaultStats.totalFunded - vaultStats.totalPaid).toFixed(2)}` : "—"}
         </p>
       </div>
 
@@ -128,9 +135,9 @@ export default function ClaimPage() {
           >
             <span className="col-span-3">Buoy ID</span>
             <span className="col-span-3">Location</span>
-            <span className="col-span-2">Readings</span>
+            <span className="col-span-1">Readings</span>
             <span className="col-span-2">Pending</span>
-            <span className="col-span-2 text-right">Action</span>
+            <span className="col-span-3 text-right">Action</span>
           </div>
 
           {/* Rows */}
@@ -162,7 +169,7 @@ export default function ClaimPage() {
                 </span>
               </div>
               <span
-                className="col-span-2 text-sm"
+                className="col-span-1 text-sm"
                 style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
               >
                 {buoy.totalReadings}
@@ -178,7 +185,22 @@ export default function ClaimPage() {
                   S/ {(buoy.unclaimedUsdc * rate).toFixed(2)}
                 </p>
               </div>
-              <div className="col-span-2 flex justify-end">
+              <div className="col-span-3 flex justify-end gap-2">
+                <button
+                  onClick={() => claimReward(buoy.buoyId)}
+                  disabled={loading}
+                  title="Cobrar en USDC desde el vault institucional"
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-[0.15em] transition-colors disabled:opacity-50 border"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    borderColor: "var(--sand)",
+                    color: "var(--sand)",
+                    background: "transparent",
+                  }}
+                >
+                  <DollarSign size={12} />
+                  USDC
+                </button>
                 <button
                   onClick={() => claimRewardAsCpen(buoy.buoyId)}
                   disabled={loading}
@@ -190,7 +212,7 @@ export default function ClaimPage() {
                   }}
                 >
                   <Coins size={12} />
-                  Cobrar
+                  cPEN
                 </button>
               </div>
             </div>
@@ -247,9 +269,9 @@ export default function ClaimPage() {
           }}
         >
           <span>{txStatus}</span>
-          {txStatus.startsWith("✅") && (
+          {txStatus.startsWith("✅") && lastTxSignature && (
             <a
-              href={`https://explorer.solana.com/tx/${txStatus.split("|")[1]?.trim().replace("...", "")}?cluster=devnet`}
+              href={`https://explorer.solana.com/tx/${lastTxSignature}?cluster=devnet`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs hover:underline"

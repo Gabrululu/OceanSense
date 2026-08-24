@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/reading", label: "Submit Reading" },
   { href: "/claim",   label: "Rewards" },
   { href: "/cpen",    label: "cPEN" },
+  { href: "/data",    label: "Data Access" },
 ];
 
 export function Navbar() {
@@ -37,7 +38,7 @@ export function Navbar() {
       )}
       style={{
         background: solid
-          ? "rgba(15, 30, 38, 0.85)"
+          ? "rgba(11, 19, 43, 0.85)"
           : "transparent",
       }}
     >
@@ -46,19 +47,48 @@ export function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 shrink-0 group"
+          className="flex items-center gap-2.5 shrink-0 group"
           suppressHydrationWarning
         >
-          <span className="relative h-2.5 w-2.5">
-            <span
-              className="absolute inset-0 rounded-full animate-ping opacity-60"
-              style={{ background: "var(--accent)" }}
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 32 32"
+            className="shrink-0 transition-transform duration-200 group-hover:scale-110"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="navWave" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="var(--accent)" />
+                <stop offset="100%" stopColor="var(--primary)" />
+              </linearGradient>
+              <clipPath id="navBuoyClip">
+                <circle cx="16" cy="18" r="7.5" />
+              </clipPath>
+            </defs>
+            <rect x="15.3" y="4.5" width="1.4" height="6" fill="var(--sand)" rx="0.5" />
+            <path d="M16.7 5 L23 7.2 L16.7 9.4 Z" fill="var(--primary)" />
+            <g clipPath="url(#navBuoyClip)">
+              <rect x="8.5" y="10.5" width="15" height="15" fill="var(--sand)" />
+              <rect x="8.5" y="17" width="15" height="2.6" fill="var(--background)" />
+            </g>
+            <circle cx="16" cy="18" r="7.5" fill="none" stroke="var(--background)" strokeWidth="1" />
+            <path
+              d="M4 25.5 Q8 22.5 12 25.5 T20 25.5 T28 25.5"
+              fill="none"
+              stroke="url(#navWave)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
             />
-            <span
-              className="relative block h-2.5 w-2.5 rounded-full"
-              style={{ background: "var(--accent)" }}
+            <path
+              d="M3 29.5 Q7.5 26.5 12 29.5 T21 29.5 T30 29.5"
+              fill="none"
+              stroke="url(#navWave)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              opacity="0.55"
             />
-          </span>
+          </svg>
           <span
             className="text-xl tracking-tight"
             style={{

@@ -10,7 +10,7 @@ DePIN de monitoreo oceánico para el litoral peruano. Red de boyas IoT operadas 
 - **Categoría**: DePIN + DeSci + Stablecoin regional
 - **Hackathon**: WayLearn × Solana Foundation — Categoría BlueSky (DeSci + Fidelización)
 - **Chain**: Solana (Devnet → Mainnet)
-- **Descripción**: Red descentralizada de boyas IoT operadas por pescadores artesanales (Perú, 40,000 operadores potenciales, 3,080 km de litoral) que registran temperatura, salinidad, oleaje y contaminación on-chain, recompensando a los operadores en cPEN.
+- **Descripción**: Red descentralizada de boyas IoT operadas por pescadores artesanales (Perú, 77,326 operadores potenciales, 3,080 km de litoral) que registran temperatura, salinidad, oleaje y contaminación on-chain, recompensando a los operadores en cPEN.
 
 ## Validation
 
@@ -18,8 +18,8 @@ DePIN de monitoreo oceánico para el litoral peruano. Red de boyas IoT operadas 
 {
   "demand_signals": [
     "El Niño 2023-2024 causó $3B en pérdidas económicas en Perú por falta de monitoreo descentralizado",
-    "40,000 pescadores artesanales afectados por falta de datos oceánicos en tiempo real",
-    "Sistemas actuales (IMARPE, SENAHMI) son centralizados con cobertura insuficiente",
+    "77,326 pescadores artesanales afectados por falta de datos oceánicos en tiempo real (IMARPE ENEPA IV, 2022-2023)",
+    "Sistemas actuales (IMARPE, SENAMHI) son centralizados con cobertura insuficiente",
     "WeatherXM demuestra que el modelo DePIN para datos ambientales funciona y tiene demanda",
     "Solana lidera DePIN: Helium, Hivemapper, GEODNET prueban el modelo de incentivos"
   ],
@@ -31,8 +31,8 @@ DePIN de monitoreo oceánico para el litoral peruano. Red de boyas IoT operadas 
     },
     {
       "category": "economic",
-      "description": "Bootstrap problem: ¿quién financia el vault USDC inicial? A $1-5 USDC/lectura x red de 100 boyas x 24h = $2,400-12,000/día en recompensas necesarias",
-      "severity": "high"
+      "description": "Bootstrap problem: ¿quién financia el vault USDC inicial? Mitigado en parte el 24 ago 2026: el modelo original no tenía cooldown on-chain (se podía spamear submit_reading y farmear sin límite) y pagaba $1-5 USDC/lectura x 100 boyas x 24h = $2,400-12,000/día. El rediseño agrega cooldown de 1h por boya (tope real de 24 lecturas/boya/día) y baja los montos a $0.20-2.00, dejando el peor caso en ~$4,800/día y un caso típico (mix de niveles) cerca de ~$700/día para 100 boyas — sigue siendo un costo real que hay que financiar, pero ahora escala de forma predecible en vez de ser explotable sin límite",
+      "severity": "medium"
     },
     {
       "category": "regulatory",
@@ -46,7 +46,7 @@ DePIN de monitoreo oceánico para el litoral peruano. Red de boyas IoT operadas 
     },
     {
       "category": "technical",
-      "description": "Oracle de tipo de cambio PEN/USD para mantener el peg de cPEN — actualmente hardcodeado a 3.80, lo que no refleja variaciones del mercado",
+      "description": "Oracle de tipo de cambio PEN/USD para mantener el peg de cPEN — el programa se redesplegó de cero el 24 ago 2026 (APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx) con la tasa 3.36 ya live y verificada on-chain (el programa anterior EawytSi... quedó huérfano); sigue siendo una constante hardcodeada que no refleja variaciones del mercado hasta que se integre un oráculo (Pyth/Switchboard)",
       "severity": "medium"
     }
   ],

@@ -9,7 +9,7 @@ import clsx from "clsx";
 
 export default function CpenPage() {
   const { connected } = useWallet();
-  const { cpenStats, loading, txStatus, mintCpen, redeemCpen } = useOceanSense();
+  const { cpenStats, loading, txStatus, lastTxSignature, mintCpen, redeemCpen } = useOceanSense();
   const { rate, lastUpdated, fetching } = useExchangeRate();
 
   const [mode, setMode]     = useState<"mint" | "redeem">("mint");
@@ -32,7 +32,7 @@ export default function CpenPage() {
   if (!connected) {
     return (
       <div
-        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-screen"
+        className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-dvh"
         style={{ background: "var(--background)" }}
       >
         <Coins size={40} style={{ color: "var(--muted-foreground)" }} />
@@ -46,7 +46,7 @@ export default function CpenPage() {
   return (
     <div
       className="max-w-lg mx-auto px-6 pt-24 pb-16 space-y-8"
-      style={{ background: "var(--background)", minHeight: "100vh" }}
+      style={{ background: "var(--background)", minHeight: "100dvh" }}
     >
       {/* Page header */}
       <div className="pt-6">
@@ -283,14 +283,14 @@ export default function CpenPage() {
           }}
         >
           <span>{txStatus}</span>
-          {txStatus.startsWith("✅") && (
+          {txStatus.startsWith("✅") && lastTxSignature && (
             <a
-              href="https://explorer.solana.com/?cluster=devnet"
+              href={`https://explorer.solana.com/tx/${lastTxSignature}?cluster=devnet`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs hover:underline"
             >
-              Explorer <ExternalLink size={11} />
+              Ver en Explorer <ExternalLink size={11} />
             </a>
           )}
         </div>

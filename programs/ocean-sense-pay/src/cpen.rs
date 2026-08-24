@@ -5,7 +5,7 @@ pub const CPEN_DECIMALS:         u8   = 2;     // 1.00 cPEN = 100 unidades
 pub const TRANSFER_FEE_BASIS:    u16  = 50;    // 0.5% (50 basis points)
 pub const MAX_FEE:               u64  = 1_000_000; // máximo 10,000 cPEN de fee
 
-pub const USDC_TO_CPEN_RATE:     u64  = 340;   // 340 cPEN por cada 1 USDC (1 USD = 3.40 PEN)
+pub const USDC_TO_CPEN_RATE:     u64  = 336;   // 336 cPEN por cada 1 USDC (1 USD = 3.36 PEN — tasa de mercado, 24 ago 2026)
 pub const USDC_DECIMALS_FACTOR:  u64  = 1_000_000; // 1 USDC = 1_000_000 units
 
 // ─────────────────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ pub fn mint_cpen(ctx: Context<crate::MintCpen>, usdc_amount: u64) -> Result<()> 
         usdc_amount,
     )?;
 
-    // 2. Calcular cPEN a acuñar (1 USDC = 3.80 cPEN)
+    // 2. Calcular cPEN a acuñar (1 USDC = 3.36 cPEN)
     // usdc_amount está en 6 decimales, cPEN en 2 decimales
     let cpen_to_mint = usdc_amount
         .checked_mul(USDC_TO_CPEN_RATE)

@@ -117,10 +117,10 @@ describe("💵 cPEN Token — Día 2", () => {
     assert.ok(cfg.cpenMint.equals(cpenMint));
     assert.ok(cfg.usdcMint.equals(usdcMint));
     assert.ok(cfg.totalMinted.eq(new BN(0)));
-    console.log("   Rate: 1 USDC = 3.80 cPEN");
+    console.log("   Rate: 1 USDC = 3.36 cPEN");
   });
 
-  it("Deposita 10 USDC y recibe 38 cPEN", async () => {
+  it("Deposita 10 USDC y recibe 33.60 cPEN", async () => {
     const USDC_IN = new BN(10_000_000);
     const tx = await program.methods
       .mintCpen(USDC_IN)
@@ -141,12 +141,12 @@ describe("💵 cPEN Token — Día 2", () => {
     const cpenBal = await getAccount(
       provider.connection, operatorCpenAccount, "confirmed", TOKEN_2022_PROGRAM_ID
     );
-    assert.equal(cpenBal.amount.toString(), "3800",
-      `esperado 3800, obtenido ${cpenBal.amount.toString()}`);
+    assert.equal(cpenBal.amount.toString(), "3360",
+      `esperado 3360, obtenido ${cpenBal.amount.toString()}`);
     console.log("   cPEN recibido:", Number(cpenBal.amount) / 100, "cPEN");
   });
 
-  it("Quema 19 cPEN y recupera ~5 USDC", async () => {
+  it("Quema 19 cPEN y recupera ~5.65 USDC", async () => {
     const CPEN_IN    = new BN(1900);
     const usdcBefore = await getAccount(provider.connection, operatorUsdcAccount);
 
@@ -168,7 +168,7 @@ describe("💵 cPEN Token — Día 2", () => {
     const usdcAfter    = await getAccount(provider.connection, operatorUsdcAccount);
     const usdcRecovered = Number(usdcAfter.amount - usdcBefore.amount);
     console.log("\n🔄 Redeem | USDC recuperado:", usdcRecovered / 1e6, "USDC");
-    assert.equal(usdcRecovered, 5_000_000);
+    assert.equal(usdcRecovered, 5_654_761);
   });
 
   it("Cobra recompensa de Ocean-Sense directamente en cPEN", async () => {
@@ -203,7 +203,7 @@ describe("💵 cPEN Token — Día 2", () => {
       provider.connection, operatorCpenAccount, "confirmed", TOKEN_2022_PROGRAM_ID
     );
     const cpenEarned   = Number(cpenAfter.amount - cpenBefore.amount);
-    const expectedCpen = Math.floor(pendingUsdc * 380 / 1_000_000);
+    const expectedCpen = Math.floor(pendingUsdc * 336 / 1_000_000);
     console.log("   cPEN ganado:", cpenEarned / 100, "cPEN");
     assert.equal(cpenEarned, expectedCpen);
 
