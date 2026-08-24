@@ -115,7 +115,7 @@ function HeroSection() {
       >
         <span>(01) — Peru · Pacific</span>
         <span className="hidden sm:inline">N°001 / Frontier &apos;26</span>
-        <span>Lat —12.04 / Lng —77.04</span>
+        <span>Lat —12.16 / Lng —77.03</span>
       </div>
 
       {/* ── Main content ── */}
@@ -628,9 +628,12 @@ function MapSection({ buoys }: { buoys: BuoyData[] }) {
             </div>
           </div>
 
-          {/* Map canvas */}
+          {/* Map canvas — solo boyas activas; las inactivas quedan en la
+              tabla/contadores para transparencia, pero no se pintan en el
+              mapa (una boya desactivada puede tener coordenadas erróneas
+              que ya no representan una ubicación real en el mar) */}
           <div className="h-[320px] md:h-[580px]">
-            <BuoyMap buoys={buoys} />
+            <BuoyMap buoys={buoys.filter((b) => b.isActive)} />
           </div>
 
           {/* Footer bar */}
@@ -638,7 +641,7 @@ function MapSection({ buoys }: { buoys: BuoyData[] }) {
             className="px-6 py-2.5 flex items-center justify-between border-t t-mono-xs gap-3"
             style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--muted-foreground)" }}
           >
-            <span className="truncate">Lat —12.04 / Lng —77.04 · Peru</span>
+            <span className="truncate">Lat —12.16 / Lng —77.03 · Peru</span>
             <span className="shrink-0" style={{ color: "var(--accent)" }}>◊ Devnet live</span>
           </div>
         </div>

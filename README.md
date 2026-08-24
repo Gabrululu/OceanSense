@@ -19,7 +19,7 @@
 | Program ID        | [`APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx`](https://explorer.solana.com/address/APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx?cluster=devnet) |
 | cPEN mint         | [`3LJLwnKYh3PeM2kqVqevGA6HAjrHQHBnpgHLXyh7oWJj`](https://explorer.solana.com/address/3LJLwnKYh3PeM2kqVqevGA6HAjrHQHBnpgHLXyh7oWJj?cluster=devnet) |
 | USDC mint (mock)  | [`4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`](https://explorer.solana.com/address/4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU?cluster=devnet) |
-| Buoy `LIMA-001`   | Registered and live — first reading claimed as cPEN                                               |
+| Buoy `CHORRILLOS-001` | Registered and live at Caleta de Pescadores, Chorrillos (-12.1648, -77.0283) — a real artisanal fishing cove in Lima. Supersedes an earlier `LIMA-001` registration that used Lima's Plaza Mayor coordinates by mistake (inland, not the coast); that buoy is now deactivated and kept as a historical on-chain record, not deleted — Solana accounts can't be deleted |
 | USDC vault        | [`BnqPn6dfNfLeSScDAPCiv7KoF4UFco4zSjsURpHBdvJj`](https://explorer.solana.com/address/BnqPn6dfNfLeSScDAPCiv7KoF4UFco4zSjsURpHBdvJj?cluster=devnet) — funds institutional "subscriptions" from [`/data`](#data-access--monetization) |
 
 This is a fresh redeploy (24 ago 2026). An earlier program (`EawytSi...`) is orphaned — its upgrade authority keypair wasn't available in the environment this was deployed from, so rather than upgrade in place, the program was redeployed from scratch under a new wallet, with the cooldown/reward-tier/rate changes below already baked into the deployed binary (verified live on-chain, not just in source).

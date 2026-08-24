@@ -115,7 +115,7 @@ Sub-line: *DePIN ocean monitoring + cPEN stablecoin for Peru's coastline.*
 
 **Headline:** *No es solo una idea.*
 
-✅ Programa on-chain funcionando (boyas, lecturas, vault USDC, cPEN mint/redeem/claim) · Frontend completo (dashboard, mapa, claim en cPEN o USDC, swap) · Demo de monetización (`/data` — suscripciones institucionales + API real) · SDK propio con paridad completa (`@oceansense/sdk` — incluye el vault) · Gateway IoT real (ESP32 → HTTP → Solana) · `BUOY_SPEC.md` — hardware documentado · Modelo económico auditado y corregido en vivo (no solo demoístico) · Live en Solana Devnet, dirección real, boya `LIMA-001` operativa.
+✅ Programa on-chain funcionando (boyas, lecturas, vault USDC, cPEN mint/redeem/claim) · Frontend completo (dashboard, mapa, claim en cPEN o USDC, swap) · Demo de monetización (`/data` — suscripciones institucionales + API real) · SDK propio con paridad completa (`@oceansense/sdk` — incluye el vault) · Gateway IoT real (ESP32 → HTTP → Solana) · `BUOY_SPEC.md` — hardware documentado · Modelo económico auditado y corregido en vivo (no solo demoístico) · Live en Solana Devnet, dirección real, boya `CHORRILLOS-001` operativa en la Caleta de Pescadores, Chorrillos.
 
 ---
 

@@ -205,7 +205,7 @@ Contenido slide-by-slide completo en [`deck.md`](deck.md).
 ## 13. Preguntas frecuentes al pitchear
 
 **¿Esto ya funciona con pescadores reales?**
-No todavía — está en Solana Devnet como prototipo del hackathon. El roadmap post-hackathon incluye el despliegue de la boya física v0.1 frente a la costa de Lima — el mismo lugar donde ya está registrada la boya piloto en Devnet (`LIMA-001`).
+No todavía — está en Solana Devnet como prototipo del hackathon. El roadmap post-hackathon incluye el despliegue de la boya física v0.1 frente a la costa de Lima — el mismo lugar donde ya está registrada la boya piloto en Devnet (`CHORRILLOS-001`, en la Caleta de Pescadores de Chorrillos, una caleta real de pescadores artesanales).
 
 **¿Cómo se mantiene el peg 1 cPEN = 1 PEN?**
 Colateralizado con USDC al tipo de cambio vigente (actualizado a 1 USDC = 3.36 cPEN, la tasa de mercado real; el roadmap incluye un oráculo on-chain para que ese tipo de cambio sea dinámico vía Pyth/Switchboard en vez de una constante que hay que actualizar a mano).

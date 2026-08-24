@@ -156,7 +156,7 @@ export function Preloader() {
           className="flex justify-between text-[10px] uppercase tracking-[0.24em]"
           style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
         >
-          <span>Lat —12.04 / Lng —77.04 · Peru · Pacific</span>
+          <span>Lat —12.16 / Lng —77.03 · Peru · Pacific</span>
           <span style={{ color: pct === 100 ? "var(--accent)" : "var(--muted-foreground)" }}>
             {String(pct).padStart(3, "0")} / 100
           </span>

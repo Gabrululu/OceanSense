@@ -51,22 +51,26 @@ export async function GET() {
       buoyAccounts.map((b: any) => [b.publicKey.toBase58(), b.account])
     );
 
-    const readings = readingAccounts.map((r: any) => {
-      const buoy = buoysByKey.get(r.account.buoy.toBase58());
-      return {
-        buoyId:         buoy?.buoyId ?? null,
-        location:       buoy?.locationName ?? null,
-        latitude:       buoy ? buoy.latitude.toNumber() / 100_000 : null,
-        longitude:      buoy ? buoy.longitude.toNumber() / 100_000 : null,
-        temperatureC:   r.account.temperature / 100,
-        salinityPsu:    r.account.salinity / 100,
-        waveHeightM:    r.account.waveHeight / 100,
-        pollutionLevel: r.account.pollutionLevel,
-        timestamp:      r.account.timestamp.toNumber(),
-        usdcReward:     r.account.usdcReward.toNumber() / 1_000_000,
-        claimed:        r.account.claimed,
-      };
-    });
+    // Solo boyas activas — una boya desactivada puede tener coordenadas
+    // erróneas que ya no representan una ubicación real (ver ARCHITECTURE.md).
+    const readings = readingAccounts
+      .filter((r: any) => buoysByKey.get(r.account.buoy.toBase58())?.isActive)
+      .map((r: any) => {
+        const buoy = buoysByKey.get(r.account.buoy.toBase58());
+        return {
+          buoyId:         buoy?.buoyId ?? null,
+          location:       buoy?.locationName ?? null,
+          latitude:       buoy ? buoy.latitude.toNumber() / 100_000 : null,
+          longitude:      buoy ? buoy.longitude.toNumber() / 100_000 : null,
+          temperatureC:   r.account.temperature / 100,
+          salinityPsu:    r.account.salinity / 100,
+          waveHeightM:    r.account.waveHeight / 100,
+          pollutionLevel: r.account.pollutionLevel,
+          timestamp:      r.account.timestamp.toNumber(),
+          usdcReward:     r.account.usdcReward.toNumber() / 1_000_000,
+          claimed:        r.account.claimed,
+        };
+      });
 
     return NextResponse.json({
       network:   "solana-devnet",

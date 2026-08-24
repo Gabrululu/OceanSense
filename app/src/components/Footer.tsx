@@ -107,7 +107,7 @@ export function Footer() {
               Terms
             </Link>
           </span>
-          <span>—12.0464° S / —77.0428° W</span>
+          <span>—12.1648° S / —77.0283° W</span>
           <span>MIT License</span>
         </div>
       </div>
