@@ -242,7 +242,7 @@ OceanSense/
 │
 ├── BUOY_SPEC.md                    ← IoT buoy hardware prototype specifications
 ├── ARCHITECTURE.md                 ← Technical architecture: PDAs, accounts, instruction flow
-├── DECK.md                         ← Pitch deck outline (slide-by-slide)
+├── deck.md                         ← Pitch deck outline (slide-by-slide)
 ├── pitch.md                        ← Project narrative: problem, solution, why now, why Solana
 ├── brandkit.md                     ← Visual identity: colors, typography, logo, voice & tone
 ├── Anchor.toml
@@ -529,9 +529,11 @@ int code = http.POST(body);
 - [x] IoT Gateway — ESP32 → HTTP → Solana transaction bridge
 - [x] `BUOY_SPEC.md` — full hardware prototype specification
 - [x] Data access/monetization demo — institutional `fund_vault` subscriptions + read-only `/api/v1/readings`
+- [x] `@oceansense/sdk` vault parity — `initializeVault`/`fundVault`/`claimReward` available outside the app, not just in `useOceanSense.ts`
 
 ### 🔜 Post-hackathon
 
+- [ ] Gate `/api/v1` behind an API key with real per-tier metering/billing — currently open for the demo; needs a decision on where subscription state lives (KV/DB vs. a simple env-var allowlist) before it can be built
 - [ ] On-chain PEN/USD exchange rate oracle (Pyth / Switchboard)
 - [ ] Cross-peer validation of anomalous readings
 - [ ] Operator staking (skin in the game)

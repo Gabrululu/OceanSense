@@ -140,10 +140,10 @@ Para un jurado de hackathon, esto es lo que separa a Ocean-Sense de un mockup:
 ## 8. Estado actual y roadmap
 
 ### ✅ Hecho (Solana Frontier Hackathon)
-Registro on-chain de boyas con PDAs · lecturas oceánicas inmutables con alertas de contaminación · vault de USDC + claim vía CPI · token cPEN con Token-2022 (Transfer Fee + Metadata + Freeze) · mint/redeem cPEN↔USDC con vault de colateral · frontend completo (dashboard, mapa, claim, swap) · soporte multi-wallet (Phantom, Solflare, Backpack, Coinbase) · suite de tests en TypeScript · tipo de cambio USD/PEN en vivo · SDK propio · gateway IoT ESP32→Solana · especificación de hardware · demo de monetización (`/data` — suscripciones institucionales vía `fund_vault` + endpoint `/api/v1/readings`).
+Registro on-chain de boyas con PDAs · lecturas oceánicas inmutables con alertas de contaminación · vault de USDC + claim vía CPI · token cPEN con Token-2022 (Transfer Fee + Metadata + Freeze) · mint/redeem cPEN↔USDC con vault de colateral · frontend completo (dashboard, mapa, claim, swap) · soporte multi-wallet (Phantom, Solflare, Backpack, Coinbase) · suite de tests en TypeScript · tipo de cambio USD/PEN en vivo · SDK propio (con paridad completa del vault: `initializeVault`/`fundVault`/`claimReward`) · gateway IoT ESP32→Solana · especificación de hardware · demo de monetización (`/data` — suscripciones institucionales vía `fund_vault` + endpoint `/api/v1/readings`).
 
 ### 🔜 Después del hackathon
-Oráculo on-chain de tipo de cambio PEN/USD (Pyth/Switchboard) · validación cruzada entre pares de lecturas anómalas · staking de operadores (skin in the game) · despliegue de la boya física v0.1 frente a la costa de Lima.
+Gatear `/api/v1` con API key y facturación real por tier (hoy está abierto para la demo; falta decidir dónde vive el estado de las suscripciones — KV/base de datos vs. un allowlist simple en variables de entorno) · oráculo on-chain de tipo de cambio PEN/USD (Pyth/Switchboard) · validación cruzada entre pares de lecturas anómalas · staking de operadores (skin in the game) · despliegue de la boya física v0.1 frente a la costa de Lima.
 
 ### 🔮 Visión a largo plazo
 Predicción de zonas de pesca con IA · dashboard para PRODUCE, SERNANP, DICAPI y la Marina de Guerra del Perú · marketplace de datos oceánicos para investigadores y aseguradoras · expansión a otras costas de Latinoamérica.
@@ -198,7 +198,7 @@ Un orden que sigue el problema→por qué ahora→solución→credibilidad→vis
 10. **Roadmap** — post-hackathon + visión (sección 8)
 11. **Cierre** — contexto de hackathon (sección 9) + tagline
 
-Contenido slide-by-slide completo en [`DECK.md`](DECK.md).
+Contenido slide-by-slide completo en [`deck.md`](deck.md).
 
 ---
 

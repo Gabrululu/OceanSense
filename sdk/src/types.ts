@@ -19,6 +19,11 @@ export interface CpenStats {
   cpenBalance: number;
 }
 
+export interface VaultStats {
+  totalFunded: number; // USDC depositado históricamente (suscripciones institucionales)
+  totalPaid: number;   // USDC ya retirado por operadores
+}
+
 export interface OceanSenseConfig {
   /** Solana RPC connection */
   connection: import("@solana/web3.js").Connection;

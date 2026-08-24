@@ -3,6 +3,7 @@ import {
   Keypair,
   PublicKey,
   SystemProgram,
+  SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 import { Program, AnchorProvider, BN, Wallet } from "@coral-xyz/anchor";
 import {
@@ -15,6 +16,7 @@ import {
 import type {
   BuoyData,
   CpenStats,
+  VaultStats,
   OceanSenseConfig,
   RegisterBuoyParams,
   SubmitReadingParams,
@@ -69,6 +71,43 @@ const IDL = {
       ],
       args: [],
     },
+    {
+      name: "initializeVault",
+      accounts: [
+        { name: "vaultState", isMut: true, isSigner: false },
+        { name: "vaultTokenAccount", isMut: true, isSigner: false },
+        { name: "usdcMint", isMut: false, isSigner: false },
+        { name: "authority", isMut: true, isSigner: true },
+        { name: "tokenProgram", isMut: false, isSigner: false },
+        { name: "systemProgram", isMut: false, isSigner: false },
+        { name: "rent", isMut: false, isSigner: false },
+      ],
+      args: [],
+    },
+    {
+      name: "fundVault",
+      accounts: [
+        { name: "vaultState", isMut: true, isSigner: false },
+        { name: "vaultTokenAccount", isMut: true, isSigner: false },
+        { name: "funderTokenAccount", isMut: true, isSigner: false },
+        { name: "funder", isMut: true, isSigner: true },
+        { name: "tokenProgram", isMut: false, isSigner: false },
+      ],
+      args: [{ name: "amount", type: "u64" }],
+    },
+    {
+      name: "claimReward",
+      accounts: [
+        { name: "buoy", isMut: true, isSigner: false },
+        { name: "owner", isMut: false, isSigner: false },
+        { name: "vaultState", isMut: true, isSigner: false },
+        { name: "vaultTokenAccount", isMut: true, isSigner: false },
+        { name: "operatorTokenAccount", isMut: true, isSigner: false },
+        { name: "operator", isMut: true, isSigner: true },
+        { name: "tokenProgram", isMut: false, isSigner: false },
+      ],
+      args: [],
+    },
   ],
   accounts: [
     {
@@ -102,6 +141,19 @@ const IDL = {
           { name: "totalRedeemed", type: "u64" },
           { name: "totalFeesCollected", type: "u64" },
           { name: "bump", type: "u8" },
+        ],
+      },
+    },
+    {
+      name: "vaultState",
+      type: {
+        kind: "struct",
+        fields: [
+          { name: "authority", type: "publicKey" },
+          { name: "usdcMint", type: "publicKey" },
+          { name: "totalFunded", type: "u64" },
+          { name: "totalPaid", type: "u64" },
+          { name: "vaultBump", type: "u8" },
         ],
       },
     },
@@ -156,6 +208,20 @@ export class OceanSenseClient {
     );
   }
 
+  getVaultStatePda(): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from("vault_state"), this.usdcMint.toBuffer()],
+      this.programId
+    );
+  }
+
+  getVaultTokenPda(): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from("vault_token"), this.usdcMint.toBuffer()],
+      this.programId
+    );
+  }
+
   // ── Read operations ──────────────────────────────────────────────
 
   async fetchBuoys(): Promise<BuoyData[]> {
@@ -196,6 +262,16 @@ export class OceanSenseClient {
       totalRedeemed: cfg ? cfg.totalRedeemed.toNumber() / 100 : 0,
       usdcBalance,
       cpenBalance,
+    };
+  }
+
+  async fetchVaultStats(): Promise<VaultStats | null> {
+    const [vaultStatePda] = this.getVaultStatePda();
+    const vs = await this.program.account.vaultState.fetch(vaultStatePda).catch(() => null) as any;
+    if (!vs) return null;
+    return {
+      totalFunded: vs.totalFunded.toNumber() / 1_000_000,
+      totalPaid:   vs.totalPaid.toNumber()   / 1_000_000,
     };
   }
 
@@ -278,6 +354,78 @@ export class OceanSenseClient {
         operator:            this.keypair.publicKey,
         tokenProgram2022:    TOKEN_2022_PROGRAM_ID,
         systemProgram:       SystemProgram.programId,
+      })
+      .rpc();
+
+    return tx;
+  }
+
+  // ── Vault de USDC crudo — suscripciones institucionales ───────────
+  // (Ver ARCHITECTURE.md §2: fund_vault es el mecanismo real detrás de
+  // las "suscripciones" en /data; claim_reward es la alternativa a
+  // claimRewardAsCpen para que el operador cobre en USDC en vez de cPEN.)
+
+  async initializeVault(): Promise<string> {
+    const [vaultStatePda] = this.getVaultStatePda();
+    const [vaultTokenPda] = this.getVaultTokenPda();
+
+    const tx = await this.program.methods
+      .initializeVault()
+      .accounts({
+        vaultState:        vaultStatePda,
+        vaultTokenAccount: vaultTokenPda,
+        usdcMint:          this.usdcMint,
+        authority:         this.keypair.publicKey,
+        tokenProgram:      TOKEN_PROGRAM_ID,
+        systemProgram:     SystemProgram.programId,
+        rent:              SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+
+    return tx;
+  }
+
+  async fundVault(usdcAmount: number): Promise<string> {
+    const [vaultStatePda] = this.getVaultStatePda();
+    const [vaultTokenPda] = this.getVaultTokenPda();
+
+    const funderTokenAccount = await getAssociatedTokenAddress(
+      this.usdcMint, this.keypair.publicKey, false, TOKEN_PROGRAM_ID
+    );
+
+    const tx = await this.program.methods
+      .fundVault(new BN(Math.round(usdcAmount * 1_000_000)))
+      .accounts({
+        vaultState:         vaultStatePda,
+        vaultTokenAccount:  vaultTokenPda,
+        funderTokenAccount,
+        funder:             this.keypair.publicKey,
+        tokenProgram:       TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+
+    return tx;
+  }
+
+  async claimReward(buoyId: string): Promise<string> {
+    const [buoyPda]       = this.getBuoyPda(buoyId, this.keypair.publicKey);
+    const [vaultStatePda] = this.getVaultStatePda();
+    const [vaultTokenPda] = this.getVaultTokenPda();
+
+    const operatorTokenAccount = await getAssociatedTokenAddress(
+      this.usdcMint, this.keypair.publicKey, false, TOKEN_PROGRAM_ID
+    );
+
+    const tx = await this.program.methods
+      .claimReward()
+      .accounts({
+        buoy:                buoyPda,
+        owner:               this.keypair.publicKey,
+        vaultState:          vaultStatePda,
+        vaultTokenAccount:   vaultTokenPda,
+        operatorTokenAccount,
+        operator:            this.keypair.publicKey,
+        tokenProgram:        TOKEN_PROGRAM_ID,
       })
       .rpc();
 
