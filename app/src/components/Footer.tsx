@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="relative border-t mt-32" style={{ borderColor: "var(--border)" }}>
       <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-16 grid grid-cols-2 md:grid-cols-12 gap-y-10 gap-x-6">
@@ -13,10 +18,10 @@ export function Footer() {
               letterSpacing: "-0.035em",
             }}
           >
-            Built for the<br />Peruvian coast.
+            {t.footer.tagline1}<br />{t.footer.tagline2}
           </p>
           <p className="mt-6 max-w-md text-sm" style={{ color: "var(--muted-foreground)" }}>
-            A public-good protocol for 77,326 artisanal fishers along 3,080 km of coastline.
+            {t.footer.publicGood}
           </p>
         </div>
 
@@ -25,15 +30,15 @@ export function Footer() {
             className="text-xs uppercase tracking-[0.18em] mb-5"
             style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
           >
-            Protocol
+            {t.footer.protocol}
           </p>
           <ul className="space-y-0">
             {[
-              { href: "/",        label: "Buoy registry",  desc: "register_buoy()" },
-              { href: "/reading", label: "Ocean readings",  desc: "submit_reading()" },
-              { href: "/claim",   label: "Claim rewards",   desc: "claim_reward_as_cpen()" },
-              { href: "/cpen",    label: "cPEN mint",       desc: "mint_cpen()" },
-              { href: "/data",    label: "Data access",     desc: "fund_vault()" },
+              { href: "/",        ...t.footer.links[0] },
+              { href: "/reading", ...t.footer.links[1] },
+              { href: "/claim",   ...t.footer.links[2] },
+              { href: "/cpen",    ...t.footer.links[3] },
+              { href: "/data",    ...t.footer.links[4] },
             ].map((item) => (
               <li key={item.href} className="border-t py-3" style={{ borderColor: "var(--border)" }}>
                 <Link
@@ -59,15 +64,10 @@ export function Footer() {
             className="text-xs uppercase tracking-[0.18em] mb-5"
             style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
           >
-            Stack
+            {t.footer.stack}
           </p>
           <ul className="space-y-0">
-            {[
-              { label: "Solana Devnet",  tag: "chain" },
-              { label: "Anchor 0.32.1", tag: "program" },
-              { label: "Token-2022",    tag: "standard" },
-              { label: "Next.js 14",    tag: "frontend" },
-            ].map((item) => (
+            {t.footer.stackItems.map((item) => (
               <li
                 key={item.label}
                 className="border-t py-3 flex items-baseline justify-between gap-4"
@@ -98,17 +98,17 @@ export function Footer() {
           className="max-w-[1600px] mx-auto px-6 lg:px-10 py-5 flex flex-wrap justify-between gap-3 text-[11px] uppercase tracking-[0.22em]"
           style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
         >
-          <span>© 2026 Ocean-Sense Labs</span>
+          <span>{t.footer.copyright}</span>
           <span className="flex gap-4">
             <Link href="/privacy" className="hover:underline" style={{ color: "var(--muted-foreground)" }}>
-              Privacy
+              {t.footer.privacy}
             </Link>
             <Link href="/terms" className="hover:underline" style={{ color: "var(--muted-foreground)" }}>
-              Terms
+              {t.footer.terms}
             </Link>
           </span>
-          <span>—12.1648° S / —77.0283° W</span>
-          <span>MIT License</span>
+          <span>{t.footer.coords}</span>
+          <span>{t.footer.license}</span>
         </div>
       </div>
     </footer>

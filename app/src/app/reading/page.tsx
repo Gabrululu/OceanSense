@@ -1,23 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { useLanguage } from "@/components/LanguageProvider";
 import { Waves, Send, PlusCircle, ExternalLink } from "lucide-react";
-import clsx from "clsx";
 
-const POLLUTION_LABELS = [
-  { value: 0, label: "Limpio",     active: "var(--primary)",  border: "var(--primary)" },
-  { value: 1, label: "Leve",       active: "var(--sand)",     border: "var(--sand)" },
-  { value: 2, label: "Moderado",   active: "var(--sand)",     border: "var(--sand)" },
-  { value: 3, label: "Crítico 🚨", active: "var(--alert)",    border: "var(--alert)" },
+const POLLUTION_COLORS = [
+  { active: "var(--primary)", border: "var(--primary)" },
+  { active: "var(--sand)",    border: "var(--sand)" },
+  { active: "var(--sand)",    border: "var(--sand)" },
+  { active: "var(--alert)",   border: "var(--alert)" },
 ];
 
 export default function ReadingPage() {
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const { buoys, loading, txStatus, lastTxSignature, registerBuoy, submitReading } = useOceanSense();
   const { rate } = useExchangeRate();
+  const { t } = useLanguage();
+
+  // Solo se puede enviar una lectura para una boya que TÚ registraste — el
+  // programa exige que buoy.owner == operator.key(). `buoys` trae todas las
+  // boyas públicas (para el mapa/dashboard), así que acá se filtra a las
+  // propias; de lo contrario el PDA calculado con tu wallet nunca existió
+  // on-chain y falla con "Account does not exist or has no data".
+  const myBuoys = useMemo(
+    () => (publicKey ? buoys.filter((b) => b.owner === publicKey.toBase58()) : []),
+    [buoys, publicKey]
+  );
 
   const [tab, setTab] = useState<"register" | "reading">("reading");
 
@@ -28,12 +39,20 @@ export default function ReadingPage() {
 
   // Form: lectura
   const [reading, setReading] = useState({
-    buoyId: buoys[0]?.buoyId || "",
+    buoyId: myBuoys[0]?.buoyId || "",
     temperature: "22.5",
     salinity: "35.1",
     waveHeight: "0.85",
     pollutionLevel: 0,
   });
+
+  // `myBuoys` llega async (fetch on-chain) — una vez cargado, precarga la
+  // primera boya propia si el formulario todavía no tiene una seleccionada.
+  useEffect(() => {
+    if (!reading.buoyId && myBuoys.length > 0) {
+      setReading((r) => ({ ...r, buoyId: myBuoys[0].buoyId }));
+    }
+  }, [myBuoys, reading.buoyId]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +84,7 @@ export default function ReadingPage() {
       >
         <Waves size={40} style={{ color: "var(--muted-foreground)" }} />
         <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-          Conecta tu wallet para enviar lecturas.
+          {t.reading.connectWallet}
         </p>
       </div>
     );
@@ -79,16 +98,16 @@ export default function ReadingPage() {
       {/* Page header */}
       <div className="pt-6">
         <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
-          / boya iot
+          {t.reading.eyebrow}
         </p>
         <h1
           className="t-display-sm"
           style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
         >
-          Boya IoT
+          {t.reading.title}
         </h1>
         <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
-          Registra una boya o envía datos oceánicos.
+          {t.reading.subtitle}
         </p>
       </div>
 
@@ -97,19 +116,19 @@ export default function ReadingPage() {
         className="flex border"
         style={{ borderColor: "var(--border)" }}
       >
-        {(["reading", "register"] as const).map((t) => (
+        {(["reading", "register"] as const).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className="flex-1 py-3 text-xs font-medium uppercase tracking-[0.18em] transition-colors"
             style={{
               fontFamily: "var(--font-mono)",
-              background: tab === t ? "var(--accent)" : "transparent",
-              color: tab === t ? "var(--accent-foreground)" : "var(--muted-foreground)",
-              borderRight: t === "reading" ? `1px solid var(--border)` : undefined,
+              background: tab === tabKey ? "var(--accent)" : "transparent",
+              color: tab === tabKey ? "var(--accent-foreground)" : "var(--muted-foreground)",
+              borderRight: tabKey === "reading" ? `1px solid var(--border)` : undefined,
             }}
           >
-            {t === "reading" ? "Enviar lectura" : "Registrar boya"}
+            {tabKey === "reading" ? t.reading.tabReading : t.reading.tabRegister}
           </button>
         ))}
       </div>
@@ -118,15 +137,15 @@ export default function ReadingPage() {
       {tab === "reading" && (
         <form onSubmit={handleReading} className="space-y-6">
           <Panel>
-            <Field label="Boya">
-              {buoys.length > 0 ? (
+            <Field label={t.reading.buoyLabel}>
+              {myBuoys.length > 0 ? (
                 <select
                   className="input-base"
                   value={reading.buoyId}
                   onChange={(e) => setReading({ ...reading, buoyId: e.target.value })}
                   required
                 >
-                  {buoys.map((b) => (
+                  {myBuoys.map((b) => (
                     <option key={b.publicKey} value={b.buoyId}>
                       {b.buoyId} — {b.locationName}
                     </option>
@@ -134,13 +153,13 @@ export default function ReadingPage() {
                 </select>
               ) : (
                 <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-                  No hay boyas registradas. Crea una primero.
+                  {t.reading.noOwnBuoys}
                 </p>
               )}
             </Field>
 
             <div className="grid grid-cols-3 gap-4">
-              <Field label="Temperatura (°C)">
+              <Field label={t.reading.temperature}>
                 <input
                   type="number" step="0.1" className="input-base"
                   value={reading.temperature}
@@ -148,7 +167,7 @@ export default function ReadingPage() {
                   required
                 />
               </Field>
-              <Field label="Salinidad (PSU)">
+              <Field label={t.reading.salinity}>
                 <input
                   type="number" step="0.1" className="input-base"
                   value={reading.salinity}
@@ -156,7 +175,7 @@ export default function ReadingPage() {
                   required
                 />
               </Field>
-              <Field label="Oleaje (m)">
+              <Field label={t.reading.waveHeight}>
                 <input
                   type="number" step="0.01" className="input-base"
                   value={reading.waveHeight}
@@ -166,22 +185,22 @@ export default function ReadingPage() {
               </Field>
             </div>
 
-            <Field label="Nivel de contaminación">
+            <Field label={t.reading.pollutionLevel}>
               <div className="grid grid-cols-4 gap-2">
-                {POLLUTION_LABELS.map((p) => (
+                {t.reading.pollutionLabels.map((label, value) => (
                   <button
-                    key={p.value}
+                    key={value}
                     type="button"
-                    onClick={() => setReading({ ...reading, pollutionLevel: p.value })}
+                    onClick={() => setReading({ ...reading, pollutionLevel: value })}
                     className="py-2.5 px-2 text-xs uppercase tracking-[0.12em] transition-all border"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      background: reading.pollutionLevel === p.value ? "transparent" : "transparent",
-                      borderColor: reading.pollutionLevel === p.value ? p.border : "var(--border)",
-                      color: reading.pollutionLevel === p.value ? p.active : "var(--muted-foreground)",
+                      background: "transparent",
+                      borderColor: reading.pollutionLevel === value ? POLLUTION_COLORS[value].border : "var(--border)",
+                      color: reading.pollutionLevel === value ? POLLUTION_COLORS[value].active : "var(--muted-foreground)",
                     }}
                   >
-                    {p.label}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -193,7 +212,7 @@ export default function ReadingPage() {
               style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}
             >
               <span style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.18em" }}>
-                Recompensa estimada
+                {t.reading.estimatedReward}
               </span>
               <span style={{ fontFamily: "var(--font-mono)", color: "var(--sand)", fontWeight: 500 }}>
                 {reading.pollutionLevel === 3
@@ -209,9 +228,7 @@ export default function ReadingPage() {
             </div>
           </Panel>
 
-          <SubmitButton loading={loading} icon={<Send size={14} />}>
-            Enviar lectura
-          </SubmitButton>
+          <SubmitButton loading={loading} icon={<Send size={14} />} label={t.reading.submitReading} processingLabel={t.reading.processing} />
         </form>
       )}
 
@@ -219,18 +236,18 @@ export default function ReadingPage() {
       {tab === "register" && (
         <form onSubmit={handleRegister} className="space-y-6">
           <Panel>
-            <Field label="ID de la boya">
+            <Field label={t.reading.buoyIdLabel}>
               <input
-                type="text" className="input-base" placeholder="ej: PAITA-001"
+                type="text" className="input-base" placeholder={t.reading.buoyIdPlaceholder}
                 maxLength={32}
                 value={newBuoy.buoyId}
                 onChange={(e) => setNewBuoy({ ...newBuoy, buoyId: e.target.value })}
                 required
               />
             </Field>
-            <Field label="Nombre de la zona">
+            <Field label={t.reading.zoneName}>
               <input
-                type="text" className="input-base" placeholder="ej: Boya Paita Norte"
+                type="text" className="input-base" placeholder={t.reading.zoneNamePlaceholder}
                 maxLength={64}
                 value={newBuoy.locationName}
                 onChange={(e) => setNewBuoy({ ...newBuoy, locationName: e.target.value })}
@@ -238,7 +255,7 @@ export default function ReadingPage() {
               />
             </Field>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Latitud (°)">
+              <Field label={t.reading.latitude}>
                 <input
                   type="number" step="0.00001" className="input-base"
                   placeholder="-5.0623"
@@ -247,7 +264,7 @@ export default function ReadingPage() {
                   required
                 />
               </Field>
-              <Field label="Longitud (°)">
+              <Field label={t.reading.longitude}>
                 <input
                   type="number" step="0.00001" className="input-base"
                   placeholder="-81.4300"
@@ -259,9 +276,7 @@ export default function ReadingPage() {
             </div>
           </Panel>
 
-          <SubmitButton loading={loading} icon={<PlusCircle size={14} />}>
-            Registrar boya
-          </SubmitButton>
+          <SubmitButton loading={loading} icon={<PlusCircle size={14} />} label={t.reading.registerBuoy} processingLabel={t.reading.processing} />
         </form>
       )}
 
@@ -296,7 +311,7 @@ export default function ReadingPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs hover:underline"
             >
-              Ver en Explorer <ExternalLink size={11} />
+              {t.reading.viewExplorer} <ExternalLink size={11} />
             </a>
           )}
         </div>
@@ -335,11 +350,12 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function SubmitButton({
-  loading, icon, children,
+  loading, icon, label, processingLabel,
 }: {
   loading: boolean;
   icon: React.ReactNode;
-  children: React.ReactNode;
+  label: string;
+  processingLabel: string;
 }) {
   return (
     <button
@@ -357,7 +373,7 @@ function SubmitButton({
       }}
     >
       {icon}
-      {loading ? "Procesando..." : children}
+      {loading ? processingLabel : label}
     </button>
   );
 }

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import type { BuoyData } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { useLanguage } from "@/components/LanguageProvider";
 import {
   Waves,
   Activity,
@@ -29,6 +30,21 @@ import { Footer } from "@/components/Footer";
 
 const BuoyMap = dynamic(() => import("@/components/BuoyMap"), { ssr: false });
 
+const STEP_ICONS = [
+  <Radio key="radio" size={20} style={{ color: "var(--accent)" }} />,
+  <Thermometer key="thermo" size={20} style={{ color: "var(--primary)" }} />,
+  <CircleDollarSign key="dollar" size={20} style={{ color: "var(--sand)" }} />,
+];
+
+const WHY_SOLANA_ICONS = [
+  <Zap key="zap" size={17} style={{ color: "var(--sand)" }} />,
+  <Activity key="activity" size={17} style={{ color: "var(--accent)" }} />,
+  <Lock key="lock" size={17} style={{ color: "var(--primary)" }} />,
+  <Database key="database" size={17} style={{ color: "var(--accent)" }} />,
+  <Globe key="globe" size={17} style={{ color: "var(--primary)" }} />,
+  <Shield key="shield" size={17} style={{ color: "var(--sand)" }} />,
+];
+
 /* ── Main page ─────────────────────────────────────────────── */
 export default function HomePage() {
   const { buoys, cpenStats, loading, fetchBuoys } = useOceanSense();
@@ -40,18 +56,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <Ticker
-        items={[
-          "Ocean Sense",
-          "Peru · Pacific Coast",
-          "3,080 km Monitored",
-          "Solana Devnet",
-          "77,326 Artisanal Fishers",
-          `1 USD = ${rate.toFixed(2)} cPEN`,
-          "< $0.001 / tx",
-          "DePIN Network",
-        ]}
-      />
+      <TickerSection rate={rate} />
       <NetworkStatsSection
         activeBuoys={activeBuoys}
         totalReadings={totalReadings}
@@ -73,6 +78,7 @@ export default function HomePage() {
 
 /* ── Hero ───────────────────────────────────────────────────── */
 function HeroSection() {
+  const { t } = useLanguage();
   return (
     <section className="relative min-h-dvh flex flex-col overflow-hidden">
 
@@ -113,9 +119,9 @@ function HeroSection() {
         className="relative z-10 max-w-[1600px] mx-auto px-6 lg:px-10 w-full pt-24 flex justify-between t-eyebrow"
         style={{ color: "rgba(143,163,188,0.7)" }}
       >
-        <span>(01) — Peru · Pacific</span>
-        <span className="hidden sm:inline">N°001 / Frontier &apos;26</span>
-        <span>Lat —12.16 / Lng —77.03</span>
+        <span>{t.hero.eyebrow}</span>
+        <span className="hidden sm:inline">{t.hero.frontier}</span>
+        <span>{t.hero.coords}</span>
       </div>
 
       {/* ── Main content ── */}
@@ -126,9 +132,9 @@ function HeroSection() {
           className="t-display-2xl mb-16 reveal-up col-span-12 lg:col-span-8"
           style={{ color: "var(--foreground)", textShadow: "0 2px 24px rgba(0,0,0,0.5)" }}
         >
-          An ocean<br />
+          {t.hero.title1}<br />
           <em style={{ fontStyle: "italic", color: "var(--accent)" }}>
-            that pays back.
+            {t.hero.title2}
           </em>
         </h1>
 
@@ -139,14 +145,14 @@ function HeroSection() {
           <div className="col-span-12 lg:col-span-7">
             <div className="flex flex-col items-start gap-3 reveal-up" style={{ animationDelay: "0.15s" }}>
               <Link href="/reading" className="btn-primary">
-                Launch App <ArrowRight size={15} />
+                {t.hero.launchApp} <ArrowRight size={15} />
               </Link>
               <a
                 href="#network"
                 className="btn-ghost"
                 style={{ background: "rgba(11,19,43,0.45)", backdropFilter: "blur(8px)" }}
               >
-                Explore Network <ChevronDown size={15} />
+                {t.hero.exploreNetwork} <ChevronDown size={15} />
               </a>
             </div>
           </div>
@@ -162,9 +168,7 @@ function HeroSection() {
                 lineHeight: "1.65",
               }}
             >
-              A DePIN network where artisanal fishers operate IoT buoys and earn{" "}
-              <strong style={{ color: "var(--foreground)", fontWeight: 500 }}>cPEN</strong>
-              {" "}— a Solana stablecoin pegged to the Peruvian Sol — for every verified ocean reading.
+              {t.hero.description}
             </p>
           </div>
 
@@ -177,9 +181,7 @@ function HeroSection() {
                 textShadow: "0 1px 8px rgba(0,0,0,0.4)",
               }}
             >
-              A DePIN network where artisanal fishers operate IoT buoys and earn{" "}
-              <strong style={{ color: "var(--foreground)", fontWeight: 500 }}>cPEN</strong>
-              {" "}for every verified ocean reading.
+              {t.hero.descriptionMobile}
             </p>
           </div>
 
@@ -190,14 +192,22 @@ function HeroSection() {
           className="mt-14 flex items-center justify-between t-mono-xs"
           style={{ color: "rgba(143,163,188,0.55)" }}
         >
-          <span>Scroll · 01 / 06</span>
+          <span>{t.hero.scroll}</span>
           <span className="float-slow" style={{ color: "var(--accent)" }}>◊</span>
-          <span>Devnet · live</span>
+          <span>{t.hero.live}</span>
         </div>
       </div>
 
     </section>
   );
+}
+
+/* ── Ticker ─────────────────────────────────────────────────── */
+function TickerSection({ rate }: { rate: number }) {
+  const { t } = useLanguage();
+  const items = [...t.ticker];
+  items.splice(5, 0, `1 USD = ${rate.toFixed(2)} cPEN`);
+  return <Ticker items={items} />;
 }
 
 /* ── Network Stats ──────────────────────────────────────────── */
@@ -214,6 +224,7 @@ function NetworkStatsSection({
   loading: boolean;
   onRefresh: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <section
       id="network"
@@ -228,13 +239,13 @@ function NetworkStatsSection({
         <div className="flex items-start justify-between mb-12 flex-wrap gap-4">
           <div>
             <p className="t-eyebrow mb-2" style={{ color: "var(--muted-foreground)" }}>
-              (02) — Live Network
+              {t.network.eyebrow}
             </p>
             <h2
               className="t-display-xs"
               style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
             >
-              Real-time data from Solana Devnet
+              {t.network.title}
             </h2>
           </div>
           <button
@@ -255,34 +266,34 @@ function NetworkStatsSection({
             }}
           >
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
-            Refresh
+            {t.network.refresh}
           </button>
         </div>
 
         {/* Stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           <StatCard
-            label="Active Buoys"
+            label={t.network.activeBuoys}
             value={activeBuoys.toString()}
-            sub="on Devnet"
+            sub={t.network.onDevnet}
             accent="var(--accent)"
           />
           <StatCard
-            label="Total Readings"
+            label={t.network.totalReadings}
             value={totalReadings.toLocaleString()}
-            sub="immutable on-chain"
+            sub={t.network.immutable}
             accent="var(--primary)"
           />
           <StatCard
-            label="cPEN Balance"
+            label={t.network.cpenBalance}
             value={`S/ ${cpenBalance.toFixed(2)}`}
-            sub="in your wallet"
+            sub={t.network.inWallet}
             accent="var(--sand)"
           />
           <StatCard
-            label="Coastline"
+            label={t.network.coastline}
             value="3,080 km"
-            sub="Peru monitored"
+            sub={t.network.peruMonitored}
             accent="var(--accent)"
           />
         </div>
@@ -329,33 +340,33 @@ function StatCard({
 
 /* ── Problem ────────────────────────────────────────────────── */
 function ProblemSection() {
+  const { t } = useLanguage();
   return (
     <section className="py-24 px-6" style={{ background: "var(--background)" }}>
       <div className="max-w-[1600px] mx-auto">
         <div className="mb-16">
           <p className="t-eyebrow mb-4" style={{ color: "var(--muted-foreground)" }}>
-            (03) — The Problem
+            {t.problems.eyebrow}
           </p>
           <div className="grid grid-cols-12 gap-6">
             <h2
               className="col-span-12 md:col-span-7 t-display-md"
               style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
             >
-              Peru&apos;s coast is flying blind
+              {t.problems.title}
             </h2>
             <p
               className="col-span-12 md:col-span-4 md:col-start-9 t-body self-end"
               style={{ color: "var(--muted-foreground)" }}
             >
-              3,080 km of coastline with no real-time ocean data — and 77,326 fishers
-              paying the price every season.
+              {t.problems.subtitle}
             </p>
           </div>
         </div>
 
         {/* Problem rows */}
         <div>
-          {PROBLEMS.map((p, i) => (
+          {t.problems.items.map((p, i) => (
             <div
               key={p.stat}
               className="border-t py-8"
@@ -408,44 +419,27 @@ function ProblemSection() {
   );
 }
 
-const PROBLEMS = [
-  {
-    stat: "3,080 km",
-    title: "No real-time monitoring",
-    desc: "Peru's entire coastline has zero decentralized data infrastructure. IMARPE and SENAMHI are centralized, under-resourced, and slow to respond.",
-  },
-  {
-    stat: "$3B lost",
-    title: "El Niño 2023–2024",
-    desc: "Catastrophic economic losses because no early-warning network existed. Fish populations collapsed overnight with no data to predict the event.",
-  },
-  {
-    stat: "77,326",
-    title: "Fishers without data",
-    desc: "Artisanal fishers make life-and-death decisions based on experience alone. No temperature alerts, no pollution warnings, no community coordination.",
-  },
-];
-
 /* ── How it Works ───────────────────────────────────────────── */
 function HowItWorksSection() {
+  const { t } = useLanguage();
   return (
     <section className="py-24 px-6" style={{ background: "var(--surface)" }}>
       <div className="max-w-[1600px] mx-auto">
         <div className="mb-16">
           <p className="t-eyebrow mb-4" style={{ color: "var(--muted-foreground)" }}>
-            (04) — How it Works
+            {t.howItWorks.eyebrow}
           </p>
           <h2
             className="t-display-md max-w-xl"
             style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
           >
-            Data to rewards in 3 steps
+            {t.howItWorks.title}
           </h2>
         </div>
 
         {/* Steps as rows */}
         <div>
-          {STEPS.map((step, i) => (
+          {t.howItWorks.steps.map((step, i) => (
             <div
               key={step.title}
               className="border-t py-8 md:py-10"
@@ -464,7 +458,7 @@ function HowItWorksSection() {
                     className="w-10 h-10 border flex items-center justify-center"
                     style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}
                   >
-                    {step.icon}
+                    {STEP_ICONS[i]}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 pt-1">
@@ -493,7 +487,7 @@ function HowItWorksSection() {
                     className="w-11 h-11 border flex items-center justify-center"
                     style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}
                   >
-                    {step.icon}
+                    {STEP_ICONS[i]}
                   </div>
                 </div>
                 <div className="col-span-3">
@@ -518,29 +512,9 @@ function HowItWorksSection() {
   );
 }
 
-const STEPS = [
-  {
-    icon: <Radio size={20} style={{ color: "var(--accent)" }} />,
-    title: "Deploy a Buoy",
-    desc: "Fishers register their IoT buoy on-chain with GPS coordinates. Each buoy gets a Program Derived Address (PDA) on Solana.",
-    reward: null,
-  },
-  {
-    icon: <Thermometer size={20} style={{ color: "var(--primary)" }} />,
-    title: "Submit Ocean Data",
-    desc: "Buoys transmit temperature, salinity, wave height, and pollution level. Every reading is validated and stored immutably on Solana.",
-    reward: null,
-  },
-  {
-    icon: <CircleDollarSign size={20} style={{ color: "var(--sand)" }} />,
-    title: "Earn cPEN",
-    desc: "Every valid reading pays the operator in cPEN — a Solana stablecoin pegged 1:1 to the Peruvian Sol. Critical pollution alerts pay 10× more.",
-    reward: "Up to 19.00 S/ per reading",
-  },
-];
-
 /* ── Map ────────────────────────────────────────────────────── */
 function MapSection({ buoys }: { buoys: BuoyData[] }) {
+  const { t } = useLanguage();
   const active   = buoys.filter((b) => b.isActive).length;
   const inactive = buoys.length - active;
 
@@ -552,23 +526,23 @@ function MapSection({ buoys }: { buoys: BuoyData[] }) {
         <div className="py-12 md:py-20 grid grid-cols-12 gap-6 items-end border-b" style={{ borderColor: "var(--border)" }}>
           <div className="col-span-12 md:col-span-7">
             <p className="t-eyebrow mb-6" style={{ color: "var(--muted-foreground)" }}>
-              (05) — Live Map
+              {t.map.eyebrow}
             </p>
             <h2
               className="t-display-md"
               style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
             >
-              Peru&apos;s monitoring<br />
-              <em style={{ fontStyle: "italic", color: "var(--accent)" }}>network.</em>
+              {t.map.title1}<br />
+              <em style={{ fontStyle: "italic", color: "var(--accent)" }}>{t.map.title2}</em>
             </h2>
           </div>
 
           {/* Live counters */}
           <div className="col-span-12 md:col-span-5 grid grid-cols-3 gap-0 border" style={{ borderColor: "var(--border)" }}>
             {[
-              { label: "Total buoys",  value: buoys.length.toString(),     color: "var(--foreground)" },
-              { label: "Active",       value: active.toString(),            color: "var(--accent)" },
-              { label: "Inactive",     value: inactive.toString(),          color: "var(--muted-foreground)" },
+              { label: t.map.totalBuoys, value: buoys.length.toString(), color: "var(--foreground)" },
+              { label: t.map.active,     value: active.toString(),      color: "var(--accent)" },
+              { label: t.map.inactive,   value: inactive.toString(),    color: "var(--muted-foreground)" },
             ].map((s, i) => (
               <div
                 key={s.label}
@@ -602,29 +576,27 @@ function MapSection({ buoys }: { buoys: BuoyData[] }) {
                 style={{ background: "var(--accent)" }}
               />
               <span className="t-eyebrow" style={{ color: "var(--foreground)" }}>
-                Peruvian Coastline
+                {t.map.coastlineLabel}
               </span>
             </div>
 
             {/* Center */}
             <div className="hidden sm:flex items-center justify-center gap-2 t-mono-xs" style={{ color: "var(--muted-foreground)" }}>
               <MapPin size={11} style={{ color: "var(--accent)" }} />
-              {buoys.length > 0
-                ? `${buoys.length} buoy${buoys.length !== 1 ? "s" : ""} · click to inspect`
-                : "Connect wallet"}
+              {t.map.buoysCount(buoys.length)}
             </div>
 
             {/* Right */}
             <div className="flex items-center justify-end gap-3 t-mono-xs" style={{ color: "var(--muted-foreground)" }}>
               <span className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--accent)" }} />
-                <span className="hidden sm:inline">Active</span>
+                <span className="hidden sm:inline">{t.map.active}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--muted)" }} />
-                <span className="hidden sm:inline">Inactive</span>
+                <span className="hidden sm:inline">{t.map.inactive}</span>
               </span>
-              <span className="hidden md:inline">Solana Devnet</span>
+              <span className="hidden md:inline">{t.map.solanaDevnet}</span>
             </div>
           </div>
 
@@ -641,8 +613,8 @@ function MapSection({ buoys }: { buoys: BuoyData[] }) {
             className="px-6 py-2.5 flex items-center justify-between border-t t-mono-xs gap-3"
             style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--muted-foreground)" }}
           >
-            <span className="truncate">Lat —12.16 / Lng —77.03 · Peru</span>
-            <span className="shrink-0" style={{ color: "var(--accent)" }}>◊ Devnet live</span>
+            <span className="truncate">{t.map.coordsFooter}</span>
+            <span className="shrink-0" style={{ color: "var(--accent)" }}>{t.map.devnetLive}</span>
           </div>
         </div>
 
@@ -653,6 +625,7 @@ function MapSection({ buoys }: { buoys: BuoyData[] }) {
 
 /* ── Buoys Table ────────────────────────────────────────────── */
 function BuoysTableSection({ buoys }: { buoys: BuoyData[] }) {
+  const { t } = useLanguage();
   return (
     <section className="pb-12 px-6" style={{ background: "var(--background)" }}>
       <div className="max-w-[1600px] mx-auto">
@@ -665,7 +638,7 @@ function BuoysTableSection({ buoys }: { buoys: BuoyData[] }) {
             className="t-eyebrow"
             style={{ color: "var(--muted-foreground)" }}
           >
-            Registered Buoys
+            {t.buoysTable.title}
           </span>
           <span
             className="t-mono-xs border px-3 py-1"
@@ -674,7 +647,7 @@ function BuoysTableSection({ buoys }: { buoys: BuoyData[] }) {
               borderColor: "var(--border)",
             }}
           >
-            {buoys.length} total
+            {t.buoysTable.total(buoys.length)}
           </span>
         </div>
 
@@ -686,11 +659,11 @@ function BuoysTableSection({ buoys }: { buoys: BuoyData[] }) {
               className="grid grid-cols-12 gap-4 py-3 border-b t-mono-xs"
               style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
             >
-              <span className="col-span-2">Buoy ID</span>
-              <span className="col-span-4">Location</span>
-              <span className="col-span-2">Status</span>
-              <span className="col-span-2 text-right">Readings</span>
-              <span className="col-span-2 text-right">USDC</span>
+              <span className="col-span-2">{t.buoysTable.buoyId}</span>
+              <span className="col-span-4">{t.buoysTable.location}</span>
+              <span className="col-span-2">{t.buoysTable.status}</span>
+              <span className="col-span-2 text-right">{t.buoysTable.readings}</span>
+              <span className="col-span-2 text-right">{t.buoysTable.usdc}</span>
             </div>
 
             {/* Rows */}
@@ -726,7 +699,7 @@ function BuoysTableSection({ buoys }: { buoys: BuoyData[] }) {
                       color: buoy.isActive ? "var(--accent)" : "var(--muted-foreground)",
                     }}
                   >
-                    {buoy.isActive ? "Active" : "Off"}
+                    {buoy.isActive ? t.buoysTable.active : t.buoysTable.off}
                   </span>
                 </span>
                 <span
@@ -755,33 +728,33 @@ function BuoysTableSection({ buoys }: { buoys: BuoyData[] }) {
 
 /* ── Why Solana ─────────────────────────────────────────────── */
 function WhySolanaSection() {
+  const { t } = useLanguage();
   return (
     <section className="py-24 px-6" style={{ background: "var(--surface)" }}>
       <div className="max-w-[1600px] mx-auto">
         <div className="mb-16">
           <p className="t-eyebrow mb-4" style={{ color: "var(--muted-foreground)" }}>
-            (06) — Why Solana
+            {t.whySolana.eyebrow}
           </p>
           <div className="grid grid-cols-12 gap-6">
             <h2
               className="col-span-12 md:col-span-6 t-display-md"
               style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
             >
-              Built for the real world
+              {t.whySolana.title}
             </h2>
             <p
               className="col-span-12 md:col-span-4 md:col-start-9 t-body self-end"
               style={{ color: "var(--muted-foreground)" }}
             >
-              A network where fishers submit readings every hour demands near-zero fees
-              and instant finality. Only one blockchain qualifies.
+              {t.whySolana.subtitle}
             </p>
           </div>
         </div>
 
         {/* Features grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-l" style={{ borderColor: "var(--border)" }}>
-          {WHY_SOLANA.map((item) => (
+          {t.whySolana.items.map((item, idx) => (
             <div
               key={item.title}
               className="border-b border-r p-6 md:p-8 flex flex-col gap-6 transition-colors duration-200 group"
@@ -799,7 +772,7 @@ function WhySolanaSection() {
                   className="t-mono-xs"
                   style={{ color: "var(--muted-foreground)" }}
                 >
-                  {String(WHY_SOLANA.findIndex(w => w.title === item.title) + 1).padStart(2, "0")}
+                  {String(idx + 1).padStart(2, "0")}
                 </span>
                 <div
                   className="w-9 h-9 border flex items-center justify-center transition-colors duration-200"
@@ -808,7 +781,7 @@ function WhySolanaSection() {
                     background: "var(--surface)",
                   }}
                 >
-                  {item.icon}
+                  {WHY_SOLANA_ICONS[idx]}
                 </div>
               </div>
 
@@ -843,6 +816,16 @@ function WhySolanaSection() {
 
 /* ── Fisher editorial ───────────────────────────────────────── */
 function FisherSection({ rate, rateFetching }: { rate: number; rateFetching: boolean }) {
+  const { t } = useLanguage();
+  const specs: [string, string][] = [
+    [t.fisher.specLabels.standard, t.fisher.standardValue],
+    [t.fisher.specLabels.peg, t.fisher.pegValue],
+    [t.fisher.specLabels.rate, rateFetching ? t.fisher.specLabels.loading : `1 USD = ${rate.toFixed(2)} cPEN`],
+    [t.fisher.specLabels.collateral, t.fisher.specLabels.collateralValue],
+    [t.fisher.specLabels.transferFee, t.fisher.transferFeeValue],
+    [t.fisher.specLabels.metadata, t.fisher.metadataValue],
+  ];
+
   return (
     <section className="px-6" style={{ background: "var(--background)" }}>
       <div className="max-w-[1600px] mx-auto grid grid-cols-12 gap-0">
@@ -851,29 +834,22 @@ function FisherSection({ rate, rateFetching }: { rate: number; rateFetching: boo
         <div className="col-span-12 md:col-span-7 flex flex-col justify-between py-12 md:py-24 md:pr-16 border-b md:border-b-0 md:border-r" style={{ borderColor: "var(--border)" }}>
           <div>
             <p className="t-eyebrow mb-8" style={{ color: "var(--muted-foreground)" }}>
-              (05) cPEN — Crypto Sol
+              {t.fisher.eyebrow}
             </p>
             <h2
               className="t-display-lg text-balance"
               style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
             >
-              A stablecoin<br />
+              {t.fisher.title1}<br />
               <em style={{ fontStyle: "italic", color: "var(--accent)" }}>
-                for the people<br />who feed Lima.
+                {t.fisher.title2}<br />{t.fisher.title3}
               </em>
             </h2>
           </div>
 
           {/* Spec table — aligns to bottom of image */}
           <div className="mt-16">
-            {[
-              ["Standard",      "Token-2022 (SPL)"],
-              ["Peg",           "1 cPEN = 1 Peruvian Sol"],
-              ["Tasa en vivo",  rateFetching ? "Cargando…" : `1 USD = ${rate.toFixed(2)} cPEN`],
-              ["Collateral",    "USDC colateralizado"],
-              ["Transfer fee",  "0.5% · cap 10,000 cPEN"],
-              ["Metadata",      "Native on-chain · no Metaplex"],
-            ].map(([k, v]) => (
+            {specs.map(([k, v]) => (
               <div
                 key={k}
                 className="grid grid-cols-12 gap-4 border-t py-4 items-baseline"
@@ -916,7 +892,7 @@ function FisherSection({ rate, rateFetching }: { rate: number; rateFetching: boo
               className="absolute inset-x-0 bottom-0 p-6 flex justify-between t-mono-xs"
               style={{ color: "var(--muted-foreground)" }}
             >
-              <span>Paita · 05.06°S</span>
+              <span>{t.fisher.location}</span>
               <span style={{ color: "var(--accent)" }}>cPEN ◊</span>
             </div>
           </div>
@@ -929,6 +905,7 @@ function FisherSection({ rate, rateFetching }: { rate: number; rateFetching: boo
 
 /* ── Data strip with texture ────────────────────────────────── */
 function DataStripSection() {
+  const { t } = useLanguage();
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0">
@@ -946,12 +923,7 @@ function DataStripSection() {
         />
       </div>
       <div className="relative max-w-[1600px] mx-auto px-6 lg:px-10 py-16 md:py-32 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
-        {[
-          ["3,080", "km de litoral"],
-          ["77,326", "pescadores alcanzados"],
-          ["$3B", "pérdida El Niño '23"],
-          ["< $0.001", "fee por tx en Solana"],
-        ].map(([n, l]) => (
+        {t.dataStrip.map(({ n, l }) => (
           <div
             key={l}
             className="border-t pt-6"
@@ -976,36 +948,3 @@ function DataStripSection() {
     </section>
   );
 }
-
-const WHY_SOLANA = [
-  {
-    icon: <Zap size={17} style={{ color: "var(--sand)" }} />,
-    title: "< $0.001 per transaction",
-    desc: "Fishers submit readings every hour. High fees would destroy the economic model. Solana makes it viable at scale.",
-  },
-  {
-    icon: <Activity size={17} style={{ color: "var(--accent)" }} />,
-    title: "Sub-second finality",
-    desc: "Pollution alerts must reach operators in seconds, not minutes. Solana's speed is non-negotiable for safety-critical data.",
-  },
-  {
-    icon: <Lock size={17} style={{ color: "var(--primary)" }} />,
-    title: "Token-2022 native",
-    desc: "Transfer Fee + Freeze Authority built in. SBS/UIF compliance and revenue sharing without extra smart contract code.",
-  },
-  {
-    icon: <Database size={17} style={{ color: "var(--accent)" }} />,
-    title: "DePIN ecosystem leader",
-    desc: "Solana is home to Helium, Hivemapper, and GEODNET. Ocean-Sense follows a proven DePIN playbook on the best DePIN chain.",
-  },
-  {
-    icon: <Globe size={17} style={{ color: "var(--primary)" }} />,
-    title: "Composable by design",
-    desc: "Any Solana program can read Ocean-Sense PDAs permissionlessly — insurance, lending, weather apps, all without permission.",
-  },
-  {
-    icon: <Shield size={17} style={{ color: "var(--sand)" }} />,
-    title: "Immutable audit trail",
-    desc: "Every ocean reading lives in a PDA forever. Researchers, regulators, and insurers can verify data without trusting a middleman.",
-  },
-];

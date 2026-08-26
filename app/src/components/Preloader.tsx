@@ -1,23 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 
-const STAGES = [
-  { min: 0,  label: "Conectando a Solana Devnet…" },
-  { min: 20, label: "Cargando red de boyas IoT…"  },
-  { min: 45, label: "Inicializando protocolo cPEN…" },
-  { min: 68, label: "Sincronizando lecturas on-chain…" },
-  { min: 88, label: "Listo." },
-];
+const STAGE_MINS = [0, 20, 45, 68, 88];
 
-function getStage(pct: number) {
-  for (let i = STAGES.length - 1; i >= 0; i--) {
-    if (pct >= STAGES[i].min) return STAGES[i].label;
+function getStage(pct: number, stages: readonly string[]) {
+  for (let i = stages.length - 1; i >= 0; i--) {
+    if (pct >= STAGE_MINS[i]) return stages[i];
   }
-  return STAGES[0].label;
+  return stages[0];
 }
 
 export function Preloader() {
+  const { t } = useLanguage();
   const [done, setDone]   = useState(false);
   const [pct,  setPct]    = useState(0);
   const [rings, setRings] = useState(false);
@@ -65,7 +61,7 @@ export function Preloader() {
         style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
       >
         <span>Ocean·Sense</span>
-        <span className="hidden md:inline">DePIN · Litoral Peruano</span>
+        <span className="hidden md:inline">{t.preloader.tagline}</span>
         <span>N°001 / Frontier &apos;26</span>
       </div>
 
@@ -121,7 +117,7 @@ export function Preloader() {
             className="text-[10px] uppercase tracking-[0.3em]"
             style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
           >
-            DePIN Ocean Monitoring · Solana
+            {t.preloader.subtitle}
           </p>
         </div>
 
@@ -130,7 +126,7 @@ export function Preloader() {
           className="text-[11px] uppercase tracking-[0.22em] transition-all duration-500"
           style={{ fontFamily: "var(--font-mono)", color: "var(--accent)" }}
         >
-          {getStage(pct)}
+          {getStage(pct, t.preloader.stages)}
         </p>
       </div>
 
@@ -156,7 +152,7 @@ export function Preloader() {
           className="flex justify-between text-[10px] uppercase tracking-[0.24em]"
           style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
         >
-          <span>Lat —12.16 / Lng —77.03 · Peru · Pacific</span>
+          <span>{t.preloader.coords}</span>
           <span style={{ color: pct === 100 ? "var(--accent)" : "var(--muted-foreground)" }}>
             {String(pct).padStart(3, "0")} / 100
           </span>

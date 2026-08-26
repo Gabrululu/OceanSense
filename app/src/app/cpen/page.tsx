@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { useLanguage } from "@/components/LanguageProvider";
 import { ArrowDownUp, Coins, ExternalLink, Info, RefreshCw } from "lucide-react";
-import clsx from "clsx";
 
 export default function CpenPage() {
   const { connected } = useWallet();
   const { cpenStats, loading, txStatus, lastTxSignature, mintCpen, redeemCpen } = useOceanSense();
   const { rate, lastUpdated, fetching } = useExchangeRate();
+  const { t, lang } = useLanguage();
 
   const [mode, setMode]     = useState<"mint" | "redeem">("mint");
   const [amount, setAmount] = useState("");
@@ -37,7 +38,7 @@ export default function CpenPage() {
       >
         <Coins size={40} style={{ color: "var(--muted-foreground)" }} />
         <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-          Conecta tu wallet para usar cPEN.
+          {t.cpenPage.connectWallet}
         </p>
       </div>
     );
@@ -51,16 +52,16 @@ export default function CpenPage() {
       {/* Page header */}
       <div className="pt-6">
         <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
-          / token cpen
+          {t.cpenPage.eyebrow}
         </p>
         <h1
           className="t-display-sm"
           style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
         >
-          Token cPEN
+          {t.cpenPage.title}
         </h1>
         <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
-          Convierte entre USDC y cPEN (Sol Peruano digital)
+          {t.cpenPage.subtitle}
         </p>
       </div>
 
@@ -80,7 +81,7 @@ export default function CpenPage() {
             {cpenStats ? cpenStats.usdcBalance.toFixed(2) : "—"}
           </p>
           <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
-            Devnet
+            {t.cpenPage.devnet}
           </p>
         </div>
         <div className="p-5">
@@ -94,7 +95,7 @@ export default function CpenPage() {
             {cpenStats ? cpenStats.cpenBalance.toFixed(2) : "—"}
           </p>
           <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
-            1 cPEN = 1 S/
+            {t.cpenPage.pegLine}
           </p>
         </div>
       </div>
@@ -105,10 +106,10 @@ export default function CpenPage() {
         style={{ borderColor: "var(--border)" }}
       >
         <ModeButton active={mode === "mint"} onClick={() => setMode("mint")}>
-          USDC → cPEN
+          {t.cpenPage.modeMint}
         </ModeButton>
         <ModeButton active={mode === "redeem"} onClick={() => setMode("redeem")} borderLeft>
-          cPEN → USDC
+          {t.cpenPage.modeRedeem}
         </ModeButton>
       </div>
 
@@ -124,7 +125,7 @@ export default function CpenPage() {
               className="block text-xs uppercase tracking-[0.18em]"
               style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
             >
-              {mode === "mint" ? "Depositas (USDC)" : "Quemas (cPEN)"}
+              {mode === "mint" ? t.cpenPage.depositLabel : t.cpenPage.burnLabel}
             </label>
             <div
               className="flex items-center gap-3 px-4 py-3 border"
@@ -165,7 +166,7 @@ export default function CpenPage() {
               className="block text-xs uppercase tracking-[0.18em]"
               style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)" }}
             >
-              {mode === "mint" ? "Recibes (cPEN)" : "Recibes (USDC)"}
+              {mode === "mint" ? t.cpenPage.receiveCpen : t.cpenPage.receiveUsdc}
             </label>
             <div
               className="flex items-center gap-3 px-4 py-3 border"
@@ -197,7 +198,7 @@ export default function CpenPage() {
               className="flex items-center gap-1.5 t-mono-xs"
               style={{ color: "var(--muted-foreground)" }}
             >
-              Tipo de cambio
+              {t.cpenPage.exchangeRate}
               {fetching && <RefreshCw size={9} className="animate-spin" />}
             </span>
             <span className="flex items-center gap-2">
@@ -215,7 +216,7 @@ export default function CpenPage() {
                   color: "var(--accent)",
                 }}
               >
-                en vivo
+                {t.cpenPage.live}
               </span>
             </span>
           </div>
@@ -224,7 +225,7 @@ export default function CpenPage() {
               className="t-mono-xs text-right -mt-3"
               style={{ color: "var(--muted-foreground)", opacity: 0.6 }}
             >
-              USD/PEN · {lastUpdated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
+              USD/PEN · {lastUpdated.toLocaleTimeString(lang === "es" ? "es-PE" : "en-US", { hour: "2-digit", minute: "2-digit" })}
             </p>
           )}
 
@@ -235,8 +236,7 @@ export default function CpenPage() {
           >
             <Info size={11} className="mt-0.5 shrink-0" style={{ color: "var(--muted-foreground)" }} />
             <span style={{ fontFamily: "var(--font-mono)", color: "var(--muted-foreground)", fontSize: "11px" }}>
-              Las transferencias de cPEN incluyen un fee de 0.5%
-              (Token-2022 Transfer Fee) que va al protocolo Ocean-Sense.
+              {t.cpenPage.feeNotice}
             </span>
           </div>
         </div>
@@ -252,10 +252,10 @@ export default function CpenPage() {
           }}
         >
           {loading
-            ? "Procesando..."
+            ? t.cpenPage.processing
             : mode === "mint"
-            ? `Obtener ${outputAmount} cPEN`
-            : `Recuperar ${outputAmount} USDC`}
+            ? t.cpenPage.getButton(outputAmount)
+            : t.cpenPage.recoverButton(outputAmount)}
         </button>
       </form>
 
@@ -290,7 +290,7 @@ export default function CpenPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs hover:underline"
             >
-              Ver en Explorer <ExternalLink size={11} />
+              {t.cpenPage.viewExplorer} <ExternalLink size={11} />
             </a>
           )}
         </div>
@@ -306,13 +306,13 @@ export default function CpenPage() {
             className="px-5 py-3 border-b t-eyebrow"
             style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
-            Stats del protocolo
+            {t.cpenPage.protocolStats}
           </div>
           {[
-            { label: "Total minted", value: `S/ ${cpenStats.totalMinted.toFixed(2)}`, highlight: false },
-            { label: "Total redeemed", value: `S/ ${cpenStats.totalRedeemed.toFixed(2)}`, highlight: false },
+            { label: t.cpenPage.totalMinted, value: `S/ ${cpenStats.totalMinted.toFixed(2)}`, highlight: false },
+            { label: t.cpenPage.totalRedeemed, value: `S/ ${cpenStats.totalRedeemed.toFixed(2)}`, highlight: false },
             {
-              label: "En circulación",
+              label: t.cpenPage.circulating,
               value: `S/ ${(cpenStats.totalMinted - cpenStats.totalRedeemed).toFixed(2)}`,
               highlight: true,
             },

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/Navbar";
 import { Preloader } from "@/components/Preloader";
+import { LanguageProvider } from "@/components/LanguageProvider";
 
 // Variable font with optical size + SOFT axes
 const fraunces = Fraunces({
@@ -61,18 +62,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           } as React.CSSProperties
         }
       >
-        <Preloader />
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:text-xs focus:uppercase focus:tracking-[0.18em]"
-          style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
-        >
-          Skip to content
-        </a>
-        <Providers>
-          <Navbar />
-          <main id="main-content" className="overflow-x-hidden">{children}</main>
-        </Providers>
+        <LanguageProvider>
+          <Preloader />
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:text-xs focus:uppercase focus:tracking-[0.18em]"
+            style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
+          >
+            Skip to content
+          </a>
+          <Providers>
+            <Navbar />
+            <main id="main-content" className="overflow-x-hidden">{children}</main>
+          </Providers>
+        </LanguageProvider>
       </body>
     </html>
   );

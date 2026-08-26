@@ -3,12 +3,14 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { useLanguage } from "@/components/LanguageProvider";
 import { Coins, DollarSign, ExternalLink, TrendingUp, RefreshCw } from "lucide-react";
 
 export default function ClaimPage() {
   const { connected } = useWallet();
   const { buoys, vaultStats, loading, txStatus, lastTxSignature, claimRewardAsCpen, claimReward } = useOceanSense();
   const { rate, lastUpdated, fetching } = useExchangeRate();
+  const { t, lang } = useLanguage();
 
   const myBuoys = buoys.filter((b) => b.unclaimedUsdc > 0);
   const totalPending = myBuoys.reduce((s, b) => s + b.unclaimedUsdc, 0);
@@ -22,7 +24,7 @@ export default function ClaimPage() {
       >
         <Coins size={40} style={{ color: "var(--muted-foreground)" }} />
         <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-          Conecta tu wallet para ver tus recompensas.
+          {t.claim.connectWallet}
         </p>
       </div>
     );
@@ -36,14 +38,14 @@ export default function ClaimPage() {
       {/* Page header */}
       <div className="pt-6">
         <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
-          /recompensas
+          {t.claim.eyebrow}
         </p>
         <div className="flex items-end justify-between gap-4">
           <h1
             className="t-display-sm"
             style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
           >
-            Recompensas
+            {t.claim.title}
           </h1>
           {fetching ? (
             <RefreshCw size={14} className="animate-spin mb-2" style={{ color: "var(--muted-foreground)" }} />
@@ -61,14 +63,14 @@ export default function ClaimPage() {
           )}
         </div>
         <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
-          Cobra tus datos oceánicos en cPEN o en USDC crudo
+          {t.claim.subtitle}
         </p>
         <p className="mt-1 t-mono-xs" style={{ color: "var(--muted-foreground)", opacity: 0.7 }}>
-          El USDC sale del vault institucional (ver{" "}
+          {t.claim.vaultNoteBefore}{" "}
           <a href="/data" className="hover:underline" style={{ color: "var(--sand)" }}>
             /data
           </a>
-          ) — disponible ahora: {vaultStats ? `$${(vaultStats.totalFunded - vaultStats.totalPaid).toFixed(2)}` : "—"}
+          {t.claim.vaultNoteAfter} {vaultStats ? `$${(vaultStats.totalFunded - vaultStats.totalPaid).toFixed(2)}` : "—"}
         </p>
       </div>
 
@@ -79,7 +81,7 @@ export default function ClaimPage() {
       >
         <div className="p-6 border-r" style={{ borderColor: "var(--border)" }}>
           <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
-            Total pendiente
+            {t.claim.totalPending}
           </p>
           <p
             className="t-display-xs italic"
@@ -88,12 +90,12 @@ export default function ClaimPage() {
             ${totalPending.toFixed(4)}
           </p>
           <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
-            USDC acumulado
+            {t.claim.usdcAccrued}
           </p>
         </div>
         <div className="p-6">
           <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
-            Recibirás en cPEN
+            {t.claim.youWillReceive}
           </p>
           <p
             className="t-display-xs italic"
@@ -102,10 +104,10 @@ export default function ClaimPage() {
             S/ {totalCpen.toFixed(2)}
           </p>
           <p className="t-mono-xs mt-2" style={{ color: "var(--muted-foreground)" }}>
-            al tipo 1 USDC = {rate.toFixed(3)} cPEN
+            {t.claim.atRate} {rate.toFixed(3)} cPEN
             {lastUpdated && (
               <span className="ml-1" style={{ color: "var(--muted-foreground)", opacity: 0.6 }}>
-                · {lastUpdated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
+                · {lastUpdated.toLocaleTimeString(lang === "es" ? "es-PE" : "en-US", { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
           </p>
@@ -120,10 +122,10 @@ export default function ClaimPage() {
         >
           <TrendingUp size={32} className="mx-auto mb-4" style={{ color: "var(--muted-foreground)" }} />
           <p className="t-eyebrow mb-2" style={{ color: "var(--muted-foreground)" }}>
-            Sin recompensas pendientes
+            {t.claim.noRewards}
           </p>
           <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)", opacity: 0.7 }}>
-            Envía lecturas para acumular USDC.
+            {t.claim.noRewardsSub}
           </p>
         </div>
       ) : (
@@ -133,11 +135,11 @@ export default function ClaimPage() {
             className="grid grid-cols-12 gap-4 py-3 border-t border-b t-mono-xs"
             style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
-            <span className="col-span-3">Buoy ID</span>
-            <span className="col-span-3">Location</span>
-            <span className="col-span-1">Readings</span>
-            <span className="col-span-2">Pending</span>
-            <span className="col-span-3 text-right">Action</span>
+            <span className="col-span-3">{t.claim.buoyId}</span>
+            <span className="col-span-3">{t.claim.location}</span>
+            <span className="col-span-1">{t.claim.readings}</span>
+            <span className="col-span-2">{t.claim.pending}</span>
+            <span className="col-span-3 text-right">{t.claim.action}</span>
           </div>
 
           {/* Rows */}
@@ -165,7 +167,7 @@ export default function ClaimPage() {
                     color: buoy.isActive ? "var(--accent)" : "var(--muted-foreground)",
                   }}
                 >
-                  {buoy.isActive ? "Activa" : "Inactiva"}
+                  {buoy.isActive ? t.claim.activeStatus : t.claim.inactiveStatus}
                 </span>
               </div>
               <span
@@ -189,7 +191,7 @@ export default function ClaimPage() {
                 <button
                   onClick={() => claimReward(buoy.buoyId)}
                   disabled={loading}
-                  title="Cobrar en USDC desde el vault institucional"
+                  title={t.claim.claimUsdcTitle}
                   className="flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-[0.15em] transition-colors disabled:opacity-50 border"
                   style={{
                     fontFamily: "var(--font-mono)",
@@ -239,7 +241,7 @@ export default function ClaimPage() {
                 (e.currentTarget as HTMLButtonElement).style.background = "transparent";
               }}
             >
-              {loading ? "Procesando..." : `Cobrar todo — S/ ${totalCpen.toFixed(2)} cPEN`}
+              {loading ? t.claim.processing : t.claim.claimAll(totalCpen.toFixed(2))}
             </button>
           )}
         </div>
@@ -276,7 +278,7 @@ export default function ClaimPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs hover:underline"
             >
-              Ver en Explorer <ExternalLink size={11} />
+              {t.claim.viewExplorer} <ExternalLink size={11} />
             </a>
           )}
         </div>
@@ -291,14 +293,9 @@ export default function ClaimPage() {
           className="t-eyebrow mb-3"
           style={{ color: "var(--muted-foreground)" }}
         >
-          ¿Qué es cPEN?
+          {t.claim.whatIsCpen}
         </p>
-        {[
-          "Stablecoin pegged 1:1 al Sol Peruano (PEN)",
-          "Emitida sobre Solana con Token-2022 (Transfer Fee 0.5%)",
-          "Colateralizada con USDC · Redimible en todo momento",
-          `1 USDC = ${rate.toFixed(3)} cPEN (tipo de cambio USD/PEN en vivo)`,
-        ].map((line, i) => (
+        {[...t.claim.cpenFacts, t.claim.liveRate(rate.toFixed(3))].map((line, i) => (
           <p
             key={i}
             className="text-xs leading-relaxed"

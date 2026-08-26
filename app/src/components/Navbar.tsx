@@ -5,19 +5,21 @@ import { usePathname } from "next/navigation";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-
-const NAV_LINKS = [
-  { href: "/",        label: "Dashboard" },
-  { href: "/reading", label: "Submit Reading" },
-  { href: "/claim",   label: "Rewards" },
-  { href: "/cpen",    label: "cPEN" },
-  { href: "/data",    label: "Data Access" },
-];
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function Navbar() {
   const pathname  = usePathname();
   const isHome    = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
+  const { lang, setLang, t } = useLanguage();
+
+  const NAV_LINKS = [
+    { href: "/",        label: t.nav.dashboard },
+    { href: "/reading", label: t.nav.submitReading },
+    { href: "/claim",   label: t.nav.rewards },
+    { href: "/cpen",    label: t.nav.cpen },
+    { href: "/data",    label: t.nav.dataAccess },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -107,7 +109,7 @@ export function Navbar() {
               borderColor: "var(--border)",
             }}
           >
-            Devnet
+            {t.nav.devnet}
           </span>
         </Link>
 
@@ -136,22 +138,53 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Wallet button */}
-        <WalletMultiButton
-          style={{
-            background: "var(--accent)",
-            color: "var(--accent-foreground)",
-            height: "34px",
-            fontSize: "11px",
-            fontFamily: "var(--font-mono)",
-            fontWeight: "500",
-            borderRadius: "0",
-            padding: "0 18px",
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            boxShadow: "none",
-          }}
-        />
+        <div className="flex items-center gap-3">
+          {/* Language toggle */}
+          <button
+            type="button"
+            onClick={() => setLang(lang === "en" ? "es" : "en")}
+            aria-label="Toggle language"
+            className="flex items-center border text-[10px] uppercase tracking-[0.15em] overflow-hidden shrink-0"
+            style={{ fontFamily: "var(--font-mono)", borderColor: "var(--border)", height: "34px" }}
+          >
+            <span
+              className="px-2.5 h-full flex items-center transition-colors"
+              style={{
+                background: lang === "en" ? "var(--accent)" : "transparent",
+                color: lang === "en" ? "var(--accent-foreground)" : "var(--muted-foreground)",
+              }}
+            >
+              EN
+            </span>
+            <span
+              className="px-2.5 h-full flex items-center transition-colors border-l"
+              style={{
+                background: lang === "es" ? "var(--accent)" : "transparent",
+                color: lang === "es" ? "var(--accent-foreground)" : "var(--muted-foreground)",
+                borderColor: "var(--border)",
+              }}
+            >
+              ES
+            </span>
+          </button>
+
+          {/* Wallet button */}
+          <WalletMultiButton
+            style={{
+              background: "var(--accent)",
+              color: "var(--accent-foreground)",
+              height: "34px",
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              fontWeight: "500",
+              borderRadius: "0",
+              padding: "0 18px",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              boxShadow: "none",
+            }}
+          />
+        </div>
       </div>
     </nav>
   );

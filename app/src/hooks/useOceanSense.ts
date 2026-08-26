@@ -17,6 +17,10 @@ import {
   getAccount,
   createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
+import { useLanguage } from "@/components/LanguageProvider";
+import type { i18n } from "@/lib/i18n";
+
+type ErrorMessages = (typeof i18n)["en"]["errors"];
 
 // ── Constantes ───────────────────────────────────────────
 const PROGRAM_ID = new PublicKey(
@@ -85,26 +89,29 @@ export interface VaultStats {
 }
 
 // ── Errores legibles ──────────────────────────────────────
-function friendlyError(e: any): string {
+function friendlyError(e: any, errors: ErrorMessages): string {
   const raw: string = e?.error?.errorMessage || e?.message || String(e);
 
   if (/user rejected|rejected the request|user denied/i.test(raw)) {
-    return "Cancelaste la transacción en tu wallet.";
+    return errors.userRejected;
   }
   if (/insufficient lamports|insufficient funds/i.test(raw)) {
-    return "Saldo insuficiente para cubrir la comisión de red.";
+    return errors.insufficientFunds;
   }
   if (/blockhash not found|block height exceeded|expired/i.test(raw)) {
-    return "La transacción expiró. Intenta de nuevo.";
+    return errors.expired;
   }
   if (/InsufficientVaultFunds/i.test(raw)) {
-    return "El vault de USDC no tiene fondos suficientes todavía — vuelve a intentar cuando haya más suscripciones institucionales, o cóbralo en cPEN.";
+    return errors.insufficientVaultFunds;
   }
   if (/failed to fetch|network ?error|timeout/i.test(raw)) {
-    return "Error de red. Revisa tu conexión e intenta de nuevo.";
+    return errors.networkError;
   }
   if (/wallet not connected|no wallet/i.test(raw)) {
-    return "Conecta tu wallet para continuar.";
+    return errors.walletNotConnected;
+  }
+  if (/account does not exist|has no data/i.test(raw)) {
+    return errors.accountNotFound;
   }
   // Los errores de Anchor/RPC pueden venir como bloques enormes — recortarlos
   return raw.length > 140 ? raw.slice(0, 140) + "…" : raw;
@@ -114,6 +121,7 @@ function friendlyError(e: any): string {
 export function useOceanSense() {
   const { connection } = useConnection();
   const wallet = useWallet();
+  const { t } = useLanguage();
 
   const [program, setProgram] = useState<Program | null>(null);
   const [buoys, setBuoys] = useState<BuoyData[]>([]);
@@ -288,7 +296,7 @@ export function useOceanSense() {
     ) => {
       if (!program || !wallet.publicKey) return;
       setLoading(true);
-      setTxStatus("Registrando boya...");
+      setTxStatus(t.status.registeringBuoy);
       try {
         const [buoyPda] = getBuoyPda(buoyId, wallet.publicKey);
         const tx = await program.methods
@@ -304,16 +312,16 @@ export function useOceanSense() {
             systemProgram: SystemProgram.programId,
           })
           .rpc();
-        setTxStatus(`✅ Boya registrada | ${tx.slice(0, 8)}...`);
+        setTxStatus(`✅ ${t.status.buoyRegistered} | ${tx.slice(0, 8)}...`);
         setLastTxSignature(tx);
         await fetchBuoys();
       } catch (e: any) {
-        setTxStatus(`❌ ${friendlyError(e)}`);
+        setTxStatus(`❌ ${friendlyError(e, t.errors)}`);
       } finally {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getBuoyPda, fetchBuoys]
+    [program, wallet.publicKey, getBuoyPda, fetchBuoys, t]
   );
 
   // ── INSTRUCCIÓN: Submit reading ───────────────────────
@@ -327,7 +335,7 @@ export function useOceanSense() {
     ) => {
       if (!program || !wallet.publicKey) return;
       setLoading(true);
-      setTxStatus("Enviando lectura...");
+      setTxStatus(t.status.sendingReading);
       try {
         const [buoyPda] = getBuoyPda(buoyId, wallet.publicKey);
         const buoyAcct = await program.account.buoyState.fetch(buoyPda) as any;
@@ -357,16 +365,16 @@ export function useOceanSense() {
             systemProgram: SystemProgram.programId,
           })
           .rpc();
-        setTxStatus(`✅ Lectura enviada | ${tx.slice(0, 8)}...`);
+        setTxStatus(`✅ ${t.status.readingSent} | ${tx.slice(0, 8)}...`);
         setLastTxSignature(tx);
         await fetchBuoys();
       } catch (e: any) {
-        setTxStatus(`❌ ${friendlyError(e)}`);
+        setTxStatus(`❌ ${friendlyError(e, t.errors)}`);
       } finally {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getBuoyPda, fetchBuoys]
+    [program, wallet.publicKey, getBuoyPda, fetchBuoys, t]
   );
 
   // ── Helper: crear ATA Token-2022 si no existe ────────
@@ -374,7 +382,7 @@ export function useOceanSense() {
     async (cpenMint: PublicKey, ataAddress: PublicKey) => {
       const info = await connection.getAccountInfo(ataAddress);
       if (info) return;
-      setTxStatus("Creando cuenta cPEN (primera vez)…");
+      setTxStatus(t.status.creatingCpenAccount);
       const ix = createAssociatedTokenAccountInstruction(
         wallet.publicKey!,
         ataAddress,
@@ -391,7 +399,7 @@ export function useOceanSense() {
       const sig = await connection.sendRawTransaction(signed.serialize());
       await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight });
     },
-    [connection, wallet]
+    [connection, wallet, t]
   );
 
   // ── INSTRUCCIÓN: Claim reward en cPEN ────────────────
@@ -399,11 +407,11 @@ export function useOceanSense() {
     async (buoyId: string) => {
       if (!program || !wallet.publicKey) return;
       if (!CPEN_MINT_ADDRESS) {
-        setTxStatus("❌ NEXT_PUBLIC_CPEN_MINT no configurado en .env.local");
+        setTxStatus(`❌ ${t.status.cpenMintNotConfigured}`);
         return;
       }
       setLoading(true);
-      setTxStatus("Verificando cuenta cPEN…");
+      setTxStatus(t.status.checkingCpenAccount);
       try {
         const [buoyPda]       = getBuoyPda(buoyId, wallet.publicKey);
         const [mintConfigPda] = getMintConfigPda();
@@ -416,7 +424,7 @@ export function useOceanSense() {
         // Crear el ATA Token-2022 si el usuario no lo tiene aún
         await ensureCpenAta(cpenMint, operatorCpenAta);
 
-        setTxStatus("Cobrando recompensa en cPEN…");
+        setTxStatus(t.status.claimingCpen);
         const tx = await program.methods
           .claimRewardAsCpen()
           .accounts({
@@ -430,16 +438,16 @@ export function useOceanSense() {
             systemProgram:       SystemProgram.programId,
           })
           .rpc();
-        setTxStatus(`✅ cPEN cobrado | ${tx.slice(0, 8)}...`);
+        setTxStatus(`✅ ${t.status.cpenClaimed} | ${tx.slice(0, 8)}...`);
         setLastTxSignature(tx);
         await Promise.all([fetchBuoys(), fetchCpenStats()]);
       } catch (e: any) {
-        setTxStatus(`❌ ${friendlyError(e)}`);
+        setTxStatus(`❌ ${friendlyError(e, t.errors)}`);
       } finally {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getBuoyPda, getMintConfigPda, ensureCpenAta, fetchBuoys, fetchCpenStats]
+    [program, wallet.publicKey, getBuoyPda, getMintConfigPda, ensureCpenAta, fetchBuoys, fetchCpenStats, t]
   );
 
   // ── INSTRUCCIÓN: Claim reward en USDC crudo ──────────
@@ -449,7 +457,7 @@ export function useOceanSense() {
     async (buoyId: string) => {
       if (!program || !wallet.publicKey) return;
       setLoading(true);
-      setTxStatus("Cobrando recompensa en USDC…");
+      setTxStatus(t.status.claimingUsdc);
       try {
         const [buoyPda]        = getBuoyPda(buoyId, wallet.publicKey);
         const [vaultStatePda]  = getVaultStatePda();
@@ -471,16 +479,16 @@ export function useOceanSense() {
             tokenProgram:        TOKEN_PROGRAM_ID,
           })
           .rpc();
-        setTxStatus(`✅ USDC cobrado | ${tx.slice(0, 8)}...`);
+        setTxStatus(`✅ ${t.status.usdcClaimed} | ${tx.slice(0, 8)}...`);
         setLastTxSignature(tx);
         await Promise.all([fetchBuoys(), fetchVaultStats()]);
       } catch (e: any) {
-        setTxStatus(`❌ ${friendlyError(e)}`);
+        setTxStatus(`❌ ${friendlyError(e, t.errors)}`);
       } finally {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getBuoyPda, getVaultStatePda, getVaultTokenPda, fetchBuoys, fetchVaultStats]
+    [program, wallet.publicKey, getBuoyPda, getVaultStatePda, getVaultTokenPda, fetchBuoys, fetchVaultStats, t]
   );
 
   // ── INSTRUCCIÓN: Mint cPEN con USDC ──────────────────
@@ -488,11 +496,11 @@ export function useOceanSense() {
     async (usdcAmount: number) => {
       if (!program || !wallet.publicKey) return;
       if (!CPEN_MINT_ADDRESS) {
-        setTxStatus("❌ NEXT_PUBLIC_CPEN_MINT no configurado en .env.local");
+        setTxStatus(`❌ ${t.status.cpenMintNotConfigured}`);
         return;
       }
       setLoading(true);
-      setTxStatus("Verificando cuenta cPEN…");
+      setTxStatus(t.status.checkingCpenAccount);
       try {
         const [mintConfigPda] = getMintConfigPda();
         const cpenMint = new PublicKey(CPEN_MINT_ADDRESS);
@@ -511,7 +519,7 @@ export function useOceanSense() {
         // Crear el ATA Token-2022 si no existe
         await ensureCpenAta(cpenMint, cpenAta);
 
-        setTxStatus("Convirtiendo USDC → cPEN…");
+        setTxStatus(t.status.convertingToCpen);
         const tx = await program.methods
           .mintCpen(new BN(Math.round(usdcAmount * 1_000_000)))
           .accounts({
@@ -526,16 +534,16 @@ export function useOceanSense() {
             systemProgram:       SystemProgram.programId,
           })
           .rpc();
-        setTxStatus(`✅ cPEN minted | ${tx.slice(0, 8)}...`);
+        setTxStatus(`✅ ${t.status.cpenMinted} | ${tx.slice(0, 8)}...`);
         setLastTxSignature(tx);
         await fetchCpenStats();
       } catch (e: any) {
-        setTxStatus(`❌ ${friendlyError(e)}`);
+        setTxStatus(`❌ ${friendlyError(e, t.errors)}`);
       } finally {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getMintConfigPda, ensureCpenAta, fetchCpenStats]
+    [program, wallet.publicKey, getMintConfigPda, ensureCpenAta, fetchCpenStats, t]
   );
 
   // ── INSTRUCCIÓN: Redeem cPEN → USDC ──────────────────
@@ -543,11 +551,11 @@ export function useOceanSense() {
     async (cpenAmount: number) => {
       if (!program || !wallet.publicKey) return;
       if (!CPEN_MINT_ADDRESS) {
-        setTxStatus("❌ NEXT_PUBLIC_CPEN_MINT no configurado en .env.local");
+        setTxStatus(`❌ ${t.status.cpenMintNotConfigured}`);
         return;
       }
       setLoading(true);
-      setTxStatus("Convirtiendo cPEN → USDC...");
+      setTxStatus(t.status.convertingToUsdc);
       try {
         const [mintConfigPda] = getMintConfigPda();
         const cpenMint = new PublicKey(CPEN_MINT_ADDRESS);
@@ -578,16 +586,16 @@ export function useOceanSense() {
             systemProgram:          SystemProgram.programId,
           })
           .rpc();
-        setTxStatus(`✅ USDC recuperado | ${tx.slice(0, 8)}...`);
+        setTxStatus(`✅ ${t.status.usdcRecovered} | ${tx.slice(0, 8)}...`);
         setLastTxSignature(tx);
         await fetchCpenStats();
       } catch (e: any) {
-        setTxStatus(`❌ ${friendlyError(e)}`);
+        setTxStatus(`❌ ${friendlyError(e, t.errors)}`);
       } finally {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getMintConfigPda, fetchCpenStats]
+    [program, wallet.publicKey, getMintConfigPda, fetchCpenStats, t]
   );
 
   // ── INSTRUCCIÓN: Suscripción institucional (fund_vault) ──
@@ -598,7 +606,7 @@ export function useOceanSense() {
     async (usdcAmount: number) => {
       if (!program || !wallet.publicKey) return;
       setLoading(true);
-      setTxStatus("Procesando suscripción…");
+      setTxStatus(t.status.processingSubscription);
       try {
         const [vaultStatePda] = getVaultStatePda();
         const [vaultTokenPda] = getVaultTokenPda();
@@ -617,16 +625,16 @@ export function useOceanSense() {
             tokenProgram:       TOKEN_PROGRAM_ID,
           })
           .rpc();
-        setTxStatus(`✅ Suscripción confirmada | ${tx.slice(0, 8)}...`);
+        setTxStatus(`✅ ${t.status.subscriptionConfirmed} | ${tx.slice(0, 8)}...`);
         setLastTxSignature(tx);
         await fetchVaultStats();
       } catch (e: any) {
-        setTxStatus(`❌ ${friendlyError(e)}`);
+        setTxStatus(`❌ ${friendlyError(e, t.errors)}`);
       } finally {
         setLoading(false);
       }
     },
-    [program, wallet.publicKey, getVaultStatePda, getVaultTokenPda, fetchVaultStats]
+    [program, wallet.publicKey, getVaultStatePda, getVaultTokenPda, fetchVaultStats, t]
   );
 
   return {

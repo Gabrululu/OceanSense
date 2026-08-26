@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function NotFound() {
+  const { t } = useLanguage();
+
   return (
     <div
       className="flex flex-col items-center justify-center px-4 pt-32 pb-24 gap-6 min-h-dvh text-center"
@@ -41,23 +46,22 @@ export default function NotFound() {
       </svg>
 
       <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-        (404) — Fuera de la ruta
+        {t.notFound.eyebrow}
       </p>
 
       <h1
         className="t-display-sm"
         style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
       >
-        Esta boya no está registrada.
+        {t.notFound.title}
       </h1>
 
       <p className="max-w-md text-sm" style={{ color: "var(--muted-foreground)" }}>
-        La página que buscas no existe o cambió de lugar. Volvé al panel principal para seguir
-        monitoreando la red.
+        {t.notFound.body}
       </p>
 
       <Link href="/" className="btn-primary mt-2">
-        Volver al inicio
+        {t.notFound.backHome}
       </Link>
     </div>
   );

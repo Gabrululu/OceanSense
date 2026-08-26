@@ -3,53 +3,19 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOceanSense } from "@/hooks/useOceanSense";
+import { useLanguage } from "@/components/LanguageProvider";
 import { Database, ExternalLink, Lock, Play, Radio, Unlock } from "lucide-react";
 
-const TIERS = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "",
-    audience: "Developers, community, transparency",
-    features: [
-      "Raw readings via program-derived accounts (Solana RPC)",
-      "Full history, no rate limit",
-      "No SLA — best effort",
-    ],
-    cta: "Read the source",
-    highlight: false,
-  },
-  {
-    name: "Research",
-    price: "$49",
-    period: "/ mo",
-    audience: "Universities, NGOs, independent researchers",
-    features: [
-      "Historical CSV export",
-      "Aggregated stats API (/api/v1)",
-      "Email support",
-    ],
-    cta: "Subscribe below",
-    highlight: true,
-  },
-  {
-    name: "Institutional",
-    price: "$499",
-    period: "/ mo",
-    audience: "PRODUCE, SERNANP, DICAPI, Navy, insurers",
-    features: [
-      "Real-time pollution-alert webhooks",
-      "SLA-backed uptime",
-      "Priority integration support",
-    ],
-    cta: "Subscribe below",
-    highlight: false,
-  },
+const TIER_PRICES = [
+  { price: "$0", period: "", highlight: false },
+  { price: "$49", period: "/ mo", highlight: true },
+  { price: "$499", period: "/ mo", highlight: false },
 ];
 
 export default function DataPage() {
   const { connected } = useWallet();
   const { vaultStats, loading, txStatus, lastTxSignature, fundVault } = useOceanSense();
+  const { t } = useLanguage();
 
   const [amount, setAmount] = useState("");
   const [apiResult, setApiResult] = useState<string | null>(null);
@@ -87,16 +53,16 @@ export default function DataPage() {
       {/* Header */}
       <div className="pt-6">
         <p className="t-eyebrow mb-3" style={{ color: "var(--muted-foreground)" }}>
-          / data access
+          {t.data.eyebrow}
         </p>
         <h1
           className="t-display-sm"
           style={{ fontFamily: "var(--font-display)", fontWeight: 380, color: "var(--foreground)" }}
         >
-          Data Access &amp; Institutional Subscriptions
+          {t.data.title}
         </h1>
         <p className="mt-2 t-body" style={{ color: "var(--muted-foreground)" }}>
-          Raw readings are public and free — the paid layer is aggregation, reliability, and real-time delivery.
+          {t.data.subtitle}
         </p>
       </div>
 
@@ -106,12 +72,11 @@ export default function DataPage() {
           <div className="flex items-center gap-2 mb-3">
             <Unlock size={13} style={{ color: "var(--accent)" }} />
             <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-              Public &amp; free
+              {t.data.publicFreeTitle}
             </p>
           </div>
           <p className="text-sm" style={{ color: "var(--foreground)" }}>
-            Every reading lives in a permissionless PDA on Solana Devnet. Anyone can read it directly —
-            no API key, no gatekeeper.
+            {t.data.publicFreeDesc}
           </p>
           <a
             href={`https://explorer.solana.com/address/${process.env.NEXT_PUBLIC_PROGRAM_ID ?? "APbuzcAP5NjhhnqJmEMLX7uEMBRsLHLuZ7rUV9VNsbfx"}?cluster=devnet`}
@@ -120,40 +85,39 @@ export default function DataPage() {
             className="mt-3 inline-flex items-center gap-1 text-xs hover:underline"
             style={{ fontFamily: "var(--font-mono)", color: "var(--accent)" }}
           >
-            View program on Explorer <ExternalLink size={11} />
+            {t.data.viewExplorer} <ExternalLink size={11} />
           </a>
         </div>
         <div className="p-5">
           <div className="flex items-center gap-2 mb-3">
             <Lock size={13} style={{ color: "var(--sand)" }} />
             <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-              What's actually paid
+              {t.data.paidTitle}
             </p>
           </div>
           <p className="text-sm" style={{ color: "var(--foreground)" }}>
-            You can't paywall a public ledger. What institutions pay for is the layer on top: aggregation,
-            historical export, real-time alert delivery, and an SLA.
+            {t.data.paidDesc}
           </p>
         </div>
       </div>
 
       {/* Pricing tiers */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {TIERS.map((tier) => (
+        {t.data.tiers.map((tier, idx) => (
           <div
             key={tier.name}
             className="border p-5 flex flex-col"
             style={{
-              borderColor: tier.highlight ? "var(--accent)" : "var(--border)",
-              background: tier.highlight ? "var(--surface)" : "transparent",
+              borderColor: TIER_PRICES[idx].highlight ? "var(--accent)" : "var(--border)",
+              background: TIER_PRICES[idx].highlight ? "var(--surface)" : "transparent",
             }}
           >
             <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
               {tier.name}
             </p>
             <p className="mt-2" style={{ fontFamily: "var(--font-display)", fontWeight: 380 }}>
-              <span className="text-3xl" style={{ color: "var(--foreground)" }}>{tier.price}</span>
-              <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{tier.period}</span>
+              <span className="text-3xl" style={{ color: "var(--foreground)" }}>{TIER_PRICES[idx].price}</span>
+              <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{TIER_PRICES[idx].period}</span>
             </p>
             <p className="mt-1 t-mono-xs" style={{ color: "var(--muted-foreground)" }}>
               {tier.audience}
@@ -170,28 +134,24 @@ export default function DataPage() {
         ))}
       </div>
       <p className="t-mono-xs -mt-6" style={{ color: "var(--muted-foreground)", opacity: 0.6 }}>
-        Illustrative pricing for the demo — not a researched pricing model yet.
+        {t.data.illustrativePricing}
       </p>
 
       {/* Fund the vault — the real subscription mechanism */}
       <div className="border" style={{ borderColor: "var(--border)" }}>
         <div className="px-5 py-3 border-b" style={{ borderColor: "var(--border)" }}>
           <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-            Fund the vault — how a subscription actually works
+            {t.data.fundVaultTitle}
           </p>
         </div>
         <div className="p-5 space-y-4">
           <p className="text-sm" style={{ color: "var(--foreground)" }}>
-            There's no separate billing system — an institutional subscription <em>is</em> a real
-            on-chain <code style={{ fontFamily: "var(--font-mono)" }}>fund_vault()</code> call. The USDC
-            lands in the same program-owned vault that operators withdraw from via{" "}
-            <code style={{ fontFamily: "var(--font-mono)" }}>claim_reward</code> — subscription revenue
-            and fisher payouts are the same pool, not two separate systems.
+            {t.data.fundVaultDesc}
           </p>
 
           {!connected ? (
             <p className="t-mono-xs" style={{ color: "var(--muted-foreground)" }}>
-              Connect a wallet to subscribe.
+              {t.data.connectToSubscribe}
             </p>
           ) : (
             <form onSubmit={handleSubscribe} className="flex items-center gap-3">
@@ -220,7 +180,7 @@ export default function DataPage() {
                 className="px-5 py-2.5 text-xs uppercase tracking-[0.18em] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ fontFamily: "var(--font-mono)", background: "var(--accent)", color: "var(--accent-foreground)" }}
               >
-                {loading ? "Processing…" : "Subscribe"}
+                {loading ? t.data.processing : t.data.subscribe}
               </button>
             </form>
           )}
@@ -243,7 +203,7 @@ export default function DataPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-xs hover:underline"
                 >
-                  View on Explorer <ExternalLink size={11} />
+                  {t.data.viewOnExplorer} <ExternalLink size={11} />
                 </a>
               )}
             </div>
@@ -252,19 +212,19 @@ export default function DataPage() {
           {/* Vault stats — public, no wallet needed */}
           <div className="grid grid-cols-3 border-t pt-4" style={{ borderColor: "var(--border)" }}>
             <div>
-              <p className="t-eyebrow mb-1" style={{ color: "var(--muted-foreground)" }}>Total funded</p>
+              <p className="t-eyebrow mb-1" style={{ color: "var(--muted-foreground)" }}>{t.data.totalFunded}</p>
               <p className="text-lg" style={{ fontFamily: "var(--font-mono)", color: "var(--foreground)" }}>
                 {vaultStats ? `${vaultStats.totalFunded.toFixed(2)} USDC` : "—"}
               </p>
             </div>
             <div>
-              <p className="t-eyebrow mb-1" style={{ color: "var(--muted-foreground)" }}>Paid to operators</p>
+              <p className="t-eyebrow mb-1" style={{ color: "var(--muted-foreground)" }}>{t.data.paidToOperators}</p>
               <p className="text-lg" style={{ fontFamily: "var(--font-mono)", color: "var(--foreground)" }}>
                 {vaultStats ? `${vaultStats.totalPaid.toFixed(2)} USDC` : "—"}
               </p>
             </div>
             <div>
-              <p className="t-eyebrow mb-1" style={{ color: "var(--muted-foreground)" }}>Available</p>
+              <p className="t-eyebrow mb-1" style={{ color: "var(--muted-foreground)" }}>{t.data.available}</p>
               <p className="text-lg" style={{ fontFamily: "var(--font-mono)", color: "var(--sand)" }}>
                 {available !== null ? `${available.toFixed(2)} USDC` : "—"}
               </p>
@@ -278,7 +238,7 @@ export default function DataPage() {
         <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor: "var(--border)" }}>
           <Database size={13} style={{ color: "var(--muted-foreground)" }} />
           <p className="t-eyebrow" style={{ color: "var(--muted-foreground)" }}>
-            Try the aggregation API
+            {t.data.tryApiTitle}
           </p>
         </div>
         <div className="p-5 space-y-3">
@@ -296,7 +256,7 @@ export default function DataPage() {
             style={{ fontFamily: "var(--font-mono)", background: "var(--primary)", color: "var(--accent-foreground)" }}
           >
             <Play size={11} />
-            {apiLoading ? "Running…" : "Run it"}
+            {apiLoading ? t.data.running : t.data.runIt}
           </button>
           {apiResult && (
             <pre
@@ -308,7 +268,7 @@ export default function DataPage() {
           )}
           <p className="t-mono-xs flex items-center gap-1.5" style={{ color: "var(--muted-foreground)", opacity: 0.7 }}>
             <Radio size={10} />
-            Open for the demo — production would gate this behind an API key and meter it per tier.
+            {t.data.apiOpenNote}
           </p>
         </div>
       </div>
