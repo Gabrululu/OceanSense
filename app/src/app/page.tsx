@@ -205,7 +205,7 @@ function HeroSection() {
 /* ── Ticker ─────────────────────────────────────────────────── */
 function TickerSection({ rate }: { rate: number }) {
   const { t } = useLanguage();
-  const items = [...t.ticker];
+  const items: string[] = [...t.ticker];
   items.splice(5, 0, `1 USD = ${rate.toFixed(2)} cPEN`);
   return <Ticker items={items} />;
 }

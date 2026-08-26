@@ -446,7 +446,7 @@ const en = {
     accountNotFound:
       'That buoy isn\'t registered with this wallet — only the wallet that registered it can operate it. Make sure it\'s yours, or register it in the "Register buoy" tab.',
   },
-} as const;
+};
 
 const es: typeof en = {
   nav: {
